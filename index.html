@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Library</title>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            padding: 15px; 
+            background-color: #f4f4f9;
+        }
+        h2 { text-align: center; color: #333; }
+        
+        /* Make the search bar big and easy to tap on mobile */
+        .dataTables_filter input {
+            font-size: 16px;
+            padding: 8px;
+            margin-left: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🎵 Song Library</h2>
+    
+    <table id="songTable" class="display responsive nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th data-priority="1">Song Title</th>
+                <th data-priority="2">Artist</th>
+                <th>Genre</th> <th>Year</th>  </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hey Jude</td>
+                <td>The Beatles</td>
+                <td>Rock</td>
+                <td>1968</td>
+            </tr>
+            <tr>
+                <td>Hello</td>
+                <td>Adele</td>
+                <td>Pop</td>
+                <td>2015</td>
+            </tr>
+            <tr>
+                <td>Bohemian Rhapsody</td>
+                <td>Queen</td>
+                <td>Rock</td>
+                <td>1975</td>
+            </tr>
+            <tr>
+                <td>Shape of You</td>
+                <td>Ed Sheeran</td>
+                <td>Pop</td>
+                <td>2017</td>
+            </tr>
+            </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(document).ready( function () {
+            $('#songTable').DataTable({
+                responsive: true, // This turns on the mobile "plus" button feature
+                pageLength: 20,   // Show 20 songs per page
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search songs or artists..."
+                }
+            });
+        } );
+    </script>
+
+</body>
+</html>
