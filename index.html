@@ -18,8 +18,6 @@
             margin: 0 auto;
             padding: 0 15px;
         }
-
-        /* Styles to Center the Search/Filter Box */
         .dataTables_filter {
             width: 100%;
             text-align: center; 
@@ -38,16 +36,12 @@
             border: 1px solid #ccc;
             padding: 6px 12px;
         }
-        
-        /* Custom style for Jukebox title */
         h1.title {
             text-align: center;
             font-size: 1.8em;
             color: #333;
             margin-bottom: 20px;
         }
-
-        /* Styling the Link Buttons */
         .link-button {
             display: inline-block;
             padding: 4px 8px;
@@ -73,7 +67,7 @@
 <body>
 
 <div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks 🎵</h1>
+    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
 
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
@@ -99,35 +93,35 @@
 <script>
 $(document).ready(function() {
     
-    // 1. Use PapaParse to fetch and parse the CSV file
     Papa.parse('tracks.csv', {
         download: true,       
         header: true,         
         skipEmptyLines: true, 
-        // This function removes the "Byte Order Mark" (BOM) if your Excel/CSV save added it
-        beforeFirstChunk: function(chunk) {
-            return chunk.charCodeAt(0) === 0xFEFF ? chunk.slice(1) : chunk;
+        
+        // 🛠️ CRITICAL FIX: This cleans every header name before it's used
+        transformHeader: function(header) {
+            // Removes the invisible BOM character and any extra whitespace
+            return header.replace(/^\ufeff/, '').trim();
         },
+        
         complete: function(results) {
-            
             var csvData = results.data;
             
-            // 2. Initialize DataTables with the processed data
             $('#tracksTable').DataTable({
                 data: csvData, 
                 
-                // Define the columns and data mapping
+                // Define the columns
                 columns: [
-                    // Mapping "No." from CSV to the "Disc & Track" column
+                    // Map cleaned 'No.' to the 'Disc & Track' column
                     { data: 'No.', title: 'Disc & Track', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Hidden data columns (Mapped to your new specific headers)
+                    // Hidden columns mapped to your new headers (Year Released, Album:, etc.)
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album:', title: 'Album Name' },
                     
-                    // Render Spotify Link (Mapped to "Spotify Link:")
+                    // Links
                     { 
                         data: 'Spotify Link:', 
                         title: 'Spotify',
@@ -138,8 +132,6 @@ $(document).ready(function() {
                             return '';
                         }
                     },
-                    
-                    // Render YouTube Link (Mapped to "Youtube Link:")
                     { 
                         data: 'Youtube Link:', 
                         title: 'YouTube',
@@ -152,7 +144,7 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. Enable Responsive extension AND modal detail view
+                // Options
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal( {
@@ -166,32 +158,20 @@ $(document).ready(function() {
                         })
                     }
                 },
-
-                // 4. Define which columns are visible and which are hidden (Mobile Priority Fix)
                 columnDefs: [
-                    // Highest Priority (Last to hide): Track Name (1) & Artist (2)
-                    { responsivePriority: 1, targets: [1, 2] }, 
-                    
-                    // Second Priority: Disc & Track (0) 
-                    { responsivePriority: 2, targets: 0 }, 
-                    
-                    // Lowest Priority: Push all other columns into the '+' button.
+                    { responsivePriority: 1, targets: [1, 2] }, // Track Name, Artist
+                    { responsivePriority: 2, targets: 0 },       // No.
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
-                    
-                    // Keep these columns explicitly hidden on the main table
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
-                
-                // 5. General table appearance options (Search Placeholder Fix)
                 dom: 'lfrtip', 
                 paging: true,
                 ordering: true,
                 info: true,
                 searching: true,
-                
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "Search for Artist or Track Name" 
+                    searchPlaceholder: "Search for track or artist" 
                 }
             });
         }
