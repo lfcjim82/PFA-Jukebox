@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jukebox Database</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PapaParse for reading the CSV file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        /* Custom Scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4ade80;
+            border-radius: 3px;
+        }
+        
+        /* Smooth fade in for list items */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide scrollbar on mobile search header to keep it clean */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-200 font-sans antialiased h-screen flex flex-col overflow-hidden">
+
+    <!-- HEADER & SEARCH -->
+    <header class="bg-slate-800 border-b border-slate-700 shadow-lg z-20 shrink-0">
+        <div class="max-w-3xl mx-auto p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-music"></i> JUKEBOX DB
+                </h1>
+                <div id="status-indicator" class="text-xs flex items-center gap-2">
+                    <span id="loading-text" class="text-slate-500">Loading...</span>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                </div>
+                <input type="text" id="search-input" 
+                    class="block w-full pl-10 pr-3 py-3 border border-slate-600 rounded-lg leading-5 bg-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-slate-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 sm:text-sm transition duration-150 ease-in-out shadow-inner" 
+                    placeholder="Search by No, Track or Artist...">
+            </div>
+        </div>
+    </header>
+
+    <!-- COLUMN HEADERS (Visual Only) -->
+    <div class="bg-slate-800/50 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider shrink-0">
+        <div class="max-w-3xl mx-auto px-2 py-2 flex items-center gap-2">
+            <div class="w-14 text-center shrink-0">No.</div>
+            <div class="flex-1 px-2">Track Name</div>
+            <!-- Artist only visible on larger screens (Landscape/Tablet) -->
+            <div class="hidden sm:block flex-1 px-2">Artist</div>
+            <div class="w-10 text-center shrink-0"></div>
+        </div>
+    </div>
+
+    <!-- SCROLLABLE CONTENT AREA -->
+    <main id="track-list" class="flex-1 overflow-y-auto p-2 space-y-2 max-w-3xl mx-auto w-full pb-20">
+        <!-- Tracks will be injected here via JavaScript -->
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // GLOBAL VARIABLES
+        let allTracks = []; 
+        const trackListElement = document.getElementById('track-list');
+        const searchInput = document.getElementById('search-input');
+        const statusIndicator = document.getElementById('status-indicator');
+        const loadingText = document.getElementById('loading-text');
+
+        // 0. FALLBACK DATA (Used if tracks.csv cannot be loaded, e.g., in preview)
+        const fallbackCSV = `No.,Track Name,Artist,Year Released,Album:,Spotify Link:,Youtube Link:
+00-01,Heroes,David Bowie,1977,Bowie the singles 1968-1993,https://open.spotify.com/search/Heroes%20David%20Bowie,https://www.youtube.com/results?search_query=Heroes%20David%20Bowie%20music%20video
+00-02,Beauty and the Beast,David Bowie,1978,Bowie the singles 1968-1993,https://open.spotify.com/search/Beauty%20and%20the%20Beast%20David%20Bowie,https://www.youtube.com/results?search_query=Beauty%20and%20the%20Beast%20David%20Bowie%20music%20video
+60-05,Let Me Put My Love Into You,AC/DC,1980,Back in Black,https://open.spotify.com/search/Let%20Me%20Put%20My%20Love%20Into%20You%20AC/DC,https://www.youtube.com/results?search_query=Let%20Me%20Put%20My%20Love%20Into%20You%20AC/DC%20music%20video
+60-06,Back In Black,AC/DC,1980,Back in Black,https://open.spotify.com/search/Back%20In%20Black%20AC/DC,https://www.youtube.com/results?search_query=Back%20In%20Black%20AC/DC%20music%20video
+60-07,You Shook Me All Night Long,AC/DC,1980,Back in Black,https://open.spotify.com/search/You%20Shook%20Me%20All%20Night%20Long%20AC/DC,https://www.youtube.com/results?search_query=You%20Shook%20Me%20All%20Night%20Long%20AC/DC`;
+
+        // 1. LOAD FUNCTION
+        function init() {
+            // Attempt to load external CSV
+            try {
+                Papa.parse('tracks.csv', {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        console.log("CSV Loaded successfully");
+                        processData(results.data, false);
+                    },
+                    error: function(err) {
+                        console.warn("Could not load tracks.csv (likely due to preview environment). Using fallback data.");
+                        useFallbackData();
+                    }
+                });
+            } catch (error) {
+                // This catches the "Invalid URL" error in Blob environments
+                console.warn("Caught synchronous error loading CSV. Using fallback data.");
+                useFallbackData();
+            }
+        }
+
+        function useFallbackData() {
+            Papa.parse(fallbackCSV, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processData(results.data, true);
+                }
+            });
+        }
+
+        function processData(data, isDemo) {
+            // Filter out valid rows
+            allTracks = data.filter(row => row['Track Name'] && row['Track Name'].trim() !== '');
+            
+            // Update UI Status
+            if (isDemo) {
+                statusIndicator.innerHTML = `
+                    <span class="bg-yellow-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Demo Mode</span>
+                    <span class="text-slate-400">${allTracks.length} tracks</span>
+                `;
+            } else {
+                statusIndicator.innerHTML = `<span class="text-green-400 font-semibold">${allTracks.length} tracks loaded</span>`;
+            }
+
+            // Initial Render
+            renderTracks(allTracks);
+        }
+
+        // 2. RENDER FUNCTION
+        function renderTracks(tracks) {
+            trackListElement.innerHTML = ''; // Clear current list
+
+            if (tracks.length === 0) {
+                trackListElement.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        No tracks found matching your search.
+                    </div>`;
+                return;
+            }
+
+            tracks.forEach((track, index) => {
+                // Create a safe unique ID for the expander
+                const uniqueId = `track-${index}`;
+                
+                // Data mapping
+                const num = track['No.'] || 'N/A';
+                const title = track['Track Name'] || 'Unknown Title';
+                const artist = track['Artist'] || 'Unknown Artist';
+                const year = track['Year Released'] || '';
+                const album = track['Album:'] || '';
+                const spotify = track['Spotify Link:'];
+                const youtube = track['Youtube Link:'];
+
+                // Create the HTML row
+                const row = document.createElement('div');
+                row.className = 'bg-slate-800 rounded-lg shadow-sm border border-slate-700 overflow-hidden fade-in hover:border-slate-600 transition-colors';
+                
+                row.innerHTML = `
+                    <!-- MAIN VISIBLE ROW -->
+                    <div class="flex items-center gap-2 p-3 cursor-pointer select-none" onclick="toggleDetails('${uniqueId}')">
+                        
+                        <!-- Priority 1: Number (Fixed width, compact) -->
+                        <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded">
+                            ${num}
+                        </div>
+
+                        <!-- Priority 2: Track Name -->
+                        <div class="flex-1 px-2 min-w-0 flex flex-col justify-center">
+                            <div class="text-slate-100 font-medium truncate text-base">${title}</div>
+                            <!-- Mobile Only Artist Subtitle (Visible on Portrait, hidden on Landscape) -->
+                            <div class="text-xs text-slate-400 truncate sm:hidden">${artist}</div>
+                        </div>
+
+                        <!-- Priority 3: Artist (Hidden on Portrait Mobile, Visible on Landscape/Desktop) -->
+                        <div class="hidden sm:block flex-1 px-2 text-slate-400 truncate">
+                            ${artist}
+                        </div>
+
+                        <!-- Expand Button -->
+                        <div class="w-10 flex justify-center shrink-0">
+                            <button id="btn-${uniqueId}" class="w-8 h-8 rounded-full bg-green-500 hover:bg-green-400 text-slate-900 flex items-center justify-center transition-transform duration-200 shadow-lg shadow-green-900/20">
+                                <i class="fa-solid fa-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- HIDDEN DETAILS ROW -->
+                    <div id="${uniqueId}" class="hidden bg-slate-900/80 border-t border-slate-700/50 text-sm">
+                        <div class="p-4 grid gap-3">
+                            
+                            <!-- Metadata -->
+                            <div class="flex flex-wrap gap-4 text-slate-400">
+                                ${year ? `<div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-green-600"></i> ${year}</div>` : ''}
+                                ${album ? `<div class="flex items-center gap-2"><i class="fa-solid fa-compact-disc text-green-600"></i> ${album}</div>` : ''}
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3 mt-2">
+                                ${spotify && spotify.trim() !== '' ? `
+                                    <a href="${spotify}" target="_blank" class="flex-1 bg-[#1DB954] hover:bg-[#1ed760] text-white py-2 px-4 rounded-md text-center font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-green-900/20">
+                                        <i class="fa-brands fa-spotify text-lg"></i> Spotify
+                                    </a>
+                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-2 px-4 rounded-md text-center cursor-not-allowed">No Spotify</span>'}
+                                
+                                ${youtube && youtube.trim() !== '' ? `
+                                    <a href="${youtube}" target="_blank" class="flex-1 bg-[#FF0000] hover:bg-[#ff3333] text-white py-2 px-4 rounded-md text-center font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-red-900/20">
+                                        <i class="fa-brands fa-youtube text-lg"></i> YouTube
+                                    </a>
+                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-2 px-4 rounded-md text-center cursor-not-allowed">No YouTube</span>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                trackListElement.appendChild(row);
+            });
+        }
+
+        // 3. EXPAND/COLLAPSE LOGIC
+        window.toggleDetails = function(id) {
+            const detailsPanel = document.getElementById(id);
+            const button = document.getElementById(`btn-${id}`);
+
+            if (detailsPanel.classList.contains('hidden')) {
+                // Open
+                detailsPanel.classList.remove('hidden');
+                button.classList.add('bg-slate-200', 'rotate-45'); // Change color and rotate
+                button.classList.remove('bg-green-500');
+            } else {
+                // Close
+                detailsPanel.classList.add('hidden');
+                button.classList.remove('bg-slate-200', 'rotate-45');
+                button.classList.add('bg-green-500');
+            }
+        };
+
+        // 4. SEARCH LOGIC
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            const filtered = allTracks.filter(track => {
+                const title = (track['Track Name'] || '').toLowerCase();
+                const artist = (track['Artist'] || '').toLowerCase();
+                const num = (track['No.'] || '').toLowerCase();
+                
+                return title.includes(searchTerm) || 
+                       artist.includes(searchTerm) || 
+                       num.includes(searchTerm);
+            });
+
+            renderTracks(filtered);
+        });
+
+        // Start the app
+        init();
+
+    </script>
+</body>
+</html>
