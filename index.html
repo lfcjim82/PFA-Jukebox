@@ -118,7 +118,7 @@ $(document).ready(function() {
             
             var csvData = results.data;
             
-            // ⬇️ CRITICAL FIX: Ensure all rows have the 'Youtube Link' key, even if blank.
+            // CRITICAL DATA FIX: Ensure all rows have the 'Youtube Link' key, even if blank.
             // This prevents the "unknown parameter" error caused by short rows.
             var sanitizedData = csvData.map(row => {
                 if (!row.hasOwnProperty('Youtube Link')) {
@@ -126,13 +126,11 @@ $(document).ready(function() {
                 }
                 return row;
             });
-            // ⬆️ END CRITICAL FIX
 
             // 2. Initialize DataTables with the sanitized data
             $('#tracksTable').DataTable({
                 data: sanitizedData, 
                 
-                // Define the columns and data mapping
                 columns: [
                     { data: 'Disc & Track', title: 'Disc & Track' },
                     { data: 'Track Name', title: 'Track Name' },
@@ -141,7 +139,6 @@ $(document).ready(function() {
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
-                    // Render Spotify Link
                     { 
                         data: 'Spotify Link', 
                         title: 'Spotify',
@@ -153,7 +150,6 @@ $(document).ready(function() {
                         }
                     },
                     
-                    // Render YouTube Link
                     { 
                         data: 'Youtube Link', 
                         title: 'YouTube',
@@ -167,11 +163,19 @@ $(document).ready(function() {
                 ],
                 
                 // 3. Enable the Responsive extension
-                responsive: true, 
+                responsive: {
+                    // 💥 FINAL FIX: This tells the Responsive extension to display ALL columns 
+                    // that are not visible in the main table when the + button is clicked.
+                    details: {
+                        renderer: $.fn.dataTable.Responsive.renderer.tableAll({
+                            tableClass: 'table'
+                        })
+                    }
+                }, 
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // FIX 2: Set the highest priority (1) for ALL three key columns.
+                    // Set the highest priority (1) for ALL three key columns.
                     { responsivePriority: 1, targets: [0, 1, 2] }, 
                     
                     // Set a very low priority (100) for all other columns, guaranteeing they hide first.
