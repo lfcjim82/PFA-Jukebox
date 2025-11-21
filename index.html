@@ -19,13 +19,13 @@
             padding: 0 15px;
         }
 
-        /* FIX 1: Force Disc & Track Column Width (Mobile Optimization) */
+        /* 🛠️ FIX 1: Force Disc & Track Column Width */
         #tracksTable th:nth-child(1),
         #tracksTable td:nth-child(1) {
-            /* Set a minimal width just enough for the 4-digit code (XX-XX) and the green plus icon */
+            /* Set a minimal width just enough for the code (XX-XX) and the green plus icon */
             width: 70px !important; 
             max-width: 70px !important;
-            white-space: nowrap; 
+            white-space: nowrap; /* Prevent the code from wrapping */
             text-align: center;
         }
 
@@ -65,6 +65,7 @@
             border-radius: 5px;
             text-decoration: none;
             font-size: 0.9em;
+            text-align: center;
             white-space: nowrap;
         }
         .spotify-link {
@@ -113,32 +114,25 @@ $(document).ready(function() {
         download: true,       
         header: true,         
         skipEmptyLines: true, 
-        
         complete: function(results) {
             
             var csvData = results.data;
             
-            // CRITICAL DATA FIX: Ensure all rows have the 'Youtube Link' key, even if blank.
-            // This prevents the "unknown parameter" error caused by short rows.
-            var sanitizedData = csvData.map(row => {
-                if (!row.hasOwnProperty('Youtube Link')) {
-                    row['Youtube Link'] = '';
-                }
-                return row;
-            });
-
-            // 2. Initialize DataTables with the sanitized data
+            // 2. Initialize DataTables with the processed data
             $('#tracksTable').DataTable({
-                data: sanitizedData, 
+                data: csvData, 
                 
+                // Define the columns and data mapping
                 columns: [
                     { data: 'Disc & Track', title: 'Disc & Track' },
                     { data: 'Track Name', title: 'Track Name' },
                     { data: 'Artist', title: 'Artist' },
                     
+                    // Hidden data columns
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
+                    // Render Spotify Link
                     { 
                         data: 'Spotify Link', 
                         title: 'Spotify',
@@ -150,6 +144,7 @@ $(document).ready(function() {
                         }
                     },
                     
+                    // Render YouTube Link
                     { 
                         data: 'Youtube Link', 
                         title: 'YouTube',
@@ -163,22 +158,17 @@ $(document).ready(function() {
                 ],
                 
                 // 3. Enable the Responsive extension
-                responsive: {
-                    // 💥 FINAL FIX: This tells the Responsive extension to display ALL columns 
-                    // that are not visible in the main table when the + button is clicked.
-                    details: {
-                        renderer: $.fn.dataTable.Responsive.renderer.tableAll({
-                            tableClass: 'table'
-                        })
-                    }
-                }, 
+                responsive: true, 
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // Set the highest priority (1) for ALL three key columns.
-                    { responsivePriority: 1, targets: [0, 1, 2] }, 
+                    // 🏆 Highest Priority (Last to hide): Track Name (1) & Artist (2)
+                    { responsivePriority: 1, targets: [1, 2] }, 
                     
-                    // Set a very low priority (100) for all other columns, guaranteeing they hide first.
+                    // 🥈 Second Priority: Disc & Track (0) - Should stay visible but has a smaller width
+                    { responsivePriority: 2, targets: 0 }, 
+                    
+                    // 🥉 Lowest Priority: Push all other columns into the '+' button.
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
                     
                     // Keep these columns explicitly hidden on the main table
