@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- PAPAPARSE: THE TOOL THAT READS YOUR 'TRACKS.CSV' FILE -->
+    <!-- FIX: Corrected the filename from 'papaparser.min.js' to 'papaparse.min.js' -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <!-- ================================================================================== -->
@@ -60,6 +61,18 @@
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
+        /* NEW STYLE: FOR THE LOGO BACKGROUND ON EACH TRACK ROW */
+        .track-logo-bg {
+            /* Logo loaded from your GitHub repository */
+            background-image: url('https://raw.githubusercontent.com/lfcjim82/PFA-Jukebox/main/logo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center;
+            position: relative;
+            /* Apply a filter to make the logo subtle and transparent */
+            filter: grayscale(100%) opacity(0.15);
+        }
     </style>
 </head>
 
@@ -82,7 +95,7 @@
             <div class="flex flex-col mb-4">
 
                 <div class="flex justify-between items-center w-full">
-                    <!-- MAIN TITLE TEXT -->
+                    <!-- MAIN TITLE TEXT (LOGO IS NOW ONLY IN THE BACKGROUND OF TRACK ROWS) -->
                     <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-3">
                         
                         <!-- LEFT MUSICAL NOTE ICON -->
@@ -94,10 +107,6 @@
                         <!-- RIGHT MUSICAL NOTE ICON -->
                         <i class="fa-solid fa-music"></i>
                     </h1>
-
-                    <!-- LOGO INSERTION POINT -->
-                    <img src="logo.png" alt="Logo" class="h-8 w-8 object-contain rounded-md">
-
 
                     <!-- LOADING INDICATOR (TOP RIGHT CORNER) -->
                     <div id="status-indicator" class="text-xs flex items-center gap-2">
@@ -173,6 +182,7 @@
         function init() {
             // TRY TO LOAD 'tracks.csv'
             try {
+                // Papa is now defined because the correct script URL is loaded in the head
                 Papa.parse('tracks.csv', {
                     download: true,
                     header: true,
@@ -243,8 +253,9 @@
                 const youtube = track['Youtube Link:'];
 
                 // STYLE FOR THE MAIN ROW CONTAINER
+                // NOTE: 'track-logo-bg' CLASS IS ADDED HERE FOR THE BACKGROUND IMAGE
                 const row = document.createElement('div');
-                row.className = 'bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden fade-in hover:border-green-600/50 hover:bg-slate-700/50 transition-all duration-200';
+                row.className = 'bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden fade-in hover:border-green-600/50 hover:bg-slate-700/50 transition-all duration-200 track-logo-bg';
                 
                 // --- THE HTML STRUCTURE FOR A SINGLE ROW ---
                 row.innerHTML = `
