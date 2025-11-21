@@ -8,29 +8,18 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
     
     <style>
-        /* BASIC BODY STYLES */
         body {
             font-family: Arial, sans-serif;
             padding-top: 20px;
             padding-bottom: 20px;
         }
-        /* CONTAINER FOR CENTERING */
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
-        /* SET A MINIMAL WIDTH FOR THE FIRST COLUMN (NO.) */
-        #tracksTable th:nth-child(1),
-        #tracksTable td:nth-child(1) {
-            width: 70px !important; 
-            max-width: 70px !important;
-            white-space: nowrap; 
-            text-align: center;
-        }
-
-        /* STYLES TO CENTER THE DATATABLES SEARCH/FILTER BOX */
+        /* Styles to Center the Search/Filter Box */
         .dataTables_filter {
             width: 100%;
             text-align: center; 
@@ -49,8 +38,8 @@
             border: 1px solid #ccc;
             padding: 6px 12px;
         }
-
-        /* CUSTOM STYLE FOR THE MAIN TITLE */
+        
+        /* Custom style for Jukebox title */
         h1.title {
             text-align: center;
             font-size: 1.8em;
@@ -58,7 +47,7 @@
             margin-bottom: 20px;
         }
 
-        /* STYLING FOR THE LINK BUTTONS */
+        /* Styling the Link Buttons */
         .link-button {
             display: inline-block;
             padding: 4px 8px;
@@ -84,18 +73,18 @@
 <body>
 
 <div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks 🎵</h1>
+    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
 
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
             <tr>
-                <th>No.</th> 
+                <th>Disc & Track</th> 
                 <th>Track Name</th>
                 <th>Artist</th>
                 <th>Year Released</th>
-                <th>Album</th>
-                <th>Spotify</th>
-                <th>YouTube</th>
+                <th>Album Name</th>
+                <th>Spotify Link</th>
+                <th>Youtube Link</th>
             </tr>
         </thead>
         <tbody>
@@ -110,46 +99,33 @@
 <script>
 $(document).ready(function() {
     
-    // 1. USE PAPAPARSE TO FETCH AND PARSE THE CSV FILE
+    // 1. Use PapaParse to fetch and parse the CSV file
     Papa.parse('tracks.csv', {
         download: true,       
         header: true,         
         skipEmptyLines: true, 
-        encoding: 'utf-8', 
-        
-        // 🚨 DEFINITIVE FIX FOR THE 'UNKNOWN PARAMETER' ERROR:
-        // THIS FUNCTION CLEANS THE HEADER KEY BEFORE PAPAPARSE CREATES THE DATA OBJECTS
-        transformHeader: function(header) {
-            // REMOVES THE INVISIBLE BYTE ORDER MARK (\uFEFF IS THE BOM CHARACTER)
-            header = header.replace(/^\uFEFF/, '');
-            // TRIMS ANY LEADING OR TRAILING WHITESPACE THAT MIGHT BE HIDDEN
-            header = header.trim();
-            // RETURNS THE CLEANED KEY (E.G., 'NO.', 'ALBUM:', ETC.)
-            return header;
-        },
-        
         complete: function(results) {
             
             var csvData = results.data;
             
-            // 2. INITIALIZE DATATABLES
+            // 2. Initialize DataTables with the processed data
             $('#tracksTable').DataTable({
                 data: csvData, 
                 
-                // DEFINES THE COLUMNS, DATA KEYS, TITLES, AND WIDTHS
+                // Define the columns and data mapping
                 columns: [
-                    // DATA KEY IS NOW GUARANTEED TO BE 'NO.'
-                    { data: 'No.', title: 'No.', width: "70px" },
+                    // Set explicit widths for the three key columns
+                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // HIDDEN DATA COLUMNS - KEYS MUST MATCH CSV
+                    // Hidden data columns
                     { data: 'Year Released', title: 'Year Released' },
-                    { data: 'Album:', title: 'Album' }, // KEY INCLUDES COLON
+                    { data: 'Album Name', title: 'Album Name' },
                     
-                    // RENDER SPOTIFY LINK
+                    // Render Spotify Link
                     { 
-                        data: 'Spotify Link:', // KEY INCLUDES COLON
+                        data: 'Spotify Link', 
                         title: 'Spotify',
                         render: function(data, type, row) {
                             if (data) {
@@ -159,9 +135,9 @@ $(document).ready(function() {
                         }
                     },
                     
-                    // RENDER YOUTUBE LINK
+                    // Render YouTube Link
                     { 
-                        data: 'Youtube Link:', // KEY INCLUDES COLON
+                        data: 'Youtube Link', 
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
@@ -172,13 +148,13 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. ENABLE RESPONSIVE EXTENSION AND CUSTOM MODAL DETAIL VIEW
+                // 3. Enable Responsive extension AND modal detail view
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                return 'DETAILS FOR '+data['Track Name']+' BY '+data['Artist'];
+                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
                             }
                         } ),
                         renderer: $.fn.dataTable.Responsive.renderer.tableAll({
@@ -187,25 +163,31 @@ $(document).ready(function() {
                     }
                 },
 
-                // 4. DEFINE MOBILE HIDE/SHOW PRIORITY
+                // 4. Define which columns are visible and which are hidden (Mobile Priority Fix)
                 columnDefs: [
-                    { responsivePriority: 1, targets: [1, 2] }, // TRACK NAME & ARTIST (HIGHEST)
-                    { responsivePriority: 2, targets: 0 },      // NO. (SECOND HIGHEST)
-                    { responsivePriority: 100, targets: [3, 4, 5, 6] }, // OTHERS (LOWEST, HIDDEN)
-                    { visible: false, targets: [3, 4, 5, 6] } // EXPLICITLY HIDE LOWEST PRIORITY
+                    // Highest Priority (Last to hide): Track Name (1) & Artist (2)
+                    { responsivePriority: 1, targets: [1, 2] }, 
+                    
+                    // Second Priority: Disc & Track (0) 
+                    { responsivePriority: 2, targets: 0 }, 
+                    
+                    // Lowest Priority: Push all other columns into the '+' button.
+                    { responsivePriority: 100, targets: [3, 4, 5, 6] },
+                    
+                    // Keep these columns explicitly hidden on the main table
+                    { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
-                // 5. GENERAL TABLE OPTIONS
+                // 5. General table appearance options (Search Placeholder Fix)
                 dom: 'lfrtip', 
                 paging: true,
                 ordering: true,
                 info: true,
                 searching: true,
                 
-                // SEARCH PLACEHOLDER AND LABEL
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "search for track or artist" 
+                    searchPlaceholder: "Search for Artist or Track Name" 
                 }
             });
         }
