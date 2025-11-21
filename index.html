@@ -19,12 +19,6 @@
             padding: 0 15px;
         }
 
-        /* 🛠️ NEW: Reduce header text size for compactness */
-        #tracksTable th {
-            font-size: 0.9em; 
-            padding: 8px 5px; 
-        }
-
         /* Styles to Center the Search/Filter Box */
         .dataTables_filter {
             width: 100%;
@@ -44,7 +38,7 @@
             border: 1px solid #ccc;
             padding: 6px 12px;
         }
-
+        
         /* Custom style for Jukebox title */
         h1.title {
             text-align: center;
@@ -121,11 +115,11 @@ $(document).ready(function() {
                 // Define the columns and data mapping
                 columns: [
                     // Set explicit widths for the three key columns
-                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" }, // Smallest fixed width
-                    { data: 'Track Name', title: 'Track Name', width: "55%" },     // Uses majority of space
-                    { data: 'Artist', title: 'Artist', width: "30%" },             // Uses remaining space
+                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" },
+                    { data: 'Track Name', title: 'Track Name', width: "55%" },
+                    { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Hidden data columns (Widths don't matter as they are hidden)
+                    // Hidden data columns
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
@@ -154,30 +148,50 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. Enable the Responsive extension
-                responsive: true, 
+                // 3. Enable Responsive extension AND restore the modal detail view
+                responsive: {
+                    details: {
+                        // Display details in a modal/popup 
+                        display: $.fn.dataTable.Responsive.display.modal( {
+                            header: function ( row ) {
+                                var data = row.data();
+                                // This provides the custom header for the detail view
+                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                            }
+                        } ),
+                        renderer: $.fn.dataTable.Responsive.renderer.tableAll({
+                            tableClass: 'table'
+                        })
+                    }
+                },
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // 🏆 Highest Priority (Last to hide): Disc & Track (0)
-                    { responsivePriority: 1, targets: 0 }, 
+                    // Highest Priority (Last to hide): Track Name (1) & Artist (2)
+                    { responsivePriority: 1, targets: [1, 2] }, 
                     
-                    // 🥈 Second Priority: Track Name (1) & Artist (2)
-                    { responsivePriority: 2, targets: [1, 2] }, 
+                    // Second Priority: Disc & Track (0) 
+                    { responsivePriority: 2, targets: 0 }, 
                     
-                    // 🥉 Lowest Priority: Push all other columns into the '+' button.
+                    // Lowest Priority: Push all other columns into the '+' button.
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
                     
                     // Keep these columns explicitly hidden on the main table
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
-                // General table appearance options
+                // 5. General table appearance options
                 dom: 'lfrtip', 
                 paging: true,
                 ordering: true,
                 info: true,
-                searching: true
+                searching: true,
+                
+                // 🛠️ FIX 3: Restore Search Placeholder
+                language: {
+                    search: "Search:", // Keep the label visible
+                    searchPlaceholder: "Search for Artist or Track Name" // The placeholder text
+                }
             });
         }
     });
