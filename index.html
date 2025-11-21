@@ -28,7 +28,7 @@
 <body>
 
 <div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks 🎵</h1>
+    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
 
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
@@ -56,57 +56,62 @@ $(document).ready(function() {
     
     Papa.parse('tracks.csv', {
         download: true,       
-        header: true,         
+        header: false, // 🛑 CHANGED TO FALSE: We will use column numbers, not names.
         skipEmptyLines: true, 
         
-        // 🛠️ THE FIX IS HERE: Force the first column to be named "No."
-        transformHeader: function(header, index) {
-            // If it's the very first column (index 0), rename it to "No."
-            // This ignores any invisible characters or BOMs completely.
-            if (index === 0) {
-                return "No.";
-            }
-            // For all other columns, just trim whitespace
-            return header.trim();
-        },
-        
         complete: function(results) {
-            var csvData = results.data;
+            // Remove the first row (which contains the headers like "No.", "Track Name" etc.)
+            // slice(1) creates a new list starting from the second row (index 1)
+            var csvData = results.data.slice(1);
             
             $('#tracksTable').DataTable({
                 data: csvData, 
+                
+                // Define the columns using NUMBERS (Index) instead of Names
+                // 0 = First Column in CSV, 1 = Second Column, etc.
                 columns: [
-                    // Now we are 100% sure the key is 'No.'
-                    { data: 'No.', title: 'Disc & Track', width: "70px" },
-                    { data: 'Track Name', title: 'Track Name', width: "55%" },
-                    { data: 'Artist', title: 'Artist', width: "30%" },
+                    // Column 0: No. (Disc & Track)
+                    { data: 0, title: 'Disc & Track', width: "70px" },
                     
-                    // Data Columns based on your headers
-                    { data: 'Year Released', title: 'Year Released' },
-                    { data: 'Album:', title: 'Album Name' },
+                    // Column 1: Track Name
+                    { data: 1, title: 'Track Name', width: "55%" },
                     
-                    // Links
+                    // Column 2: Artist
+                    { data: 2, title: 'Artist', width: "30%" },
+                    
+                    // Column 3: Year Released
+                    { data: 3, title: 'Year Released' },
+                    
+                    // Column 4: Album
+                    { data: 4, title: 'Album Name' },
+                    
+                    // Column 5: Spotify Link
                     { 
-                        data: 'Spotify Link:', 
+                        data: 5, 
                         title: 'Spotify',
                         render: function(data) {
                             return data ? '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>' : '';
                         }
                     },
+                    
+                    // Column 6: Youtube Link
                     { 
-                        data: 'Youtube Link:', 
+                        data: 6, 
                         title: 'YouTube',
                         render: function(data) {
                             return data ? '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>' : '';
                         }
                     }
                 ],
+                
+                // Configuration for the green + button
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                                // data[1] is Track Name, data[2] is Artist
+                                return 'Details for '+data[1]+' by '+data[2];
                             }
                         } ),
                         renderer: $.fn.dataTable.Responsive.renderer.tableAll({
@@ -114,12 +119,15 @@ $(document).ready(function() {
                         })
                     }
                 },
+                
+                // Priority settings for Mobile
                 columnDefs: [
-                    { responsivePriority: 1, targets: [1, 2] },
-                    { responsivePriority: 2, targets: 0 },
-                    { responsivePriority: 100, targets: [3, 4, 5, 6] },
-                    { visible: false, targets: [3, 4, 5, 6] } 
+                    { responsivePriority: 1, targets: [1, 2] }, // Keep Track (1) & Artist (2) visible longest
+                    { responsivePriority: 2, targets: 0 },      // Then Disc (0)
+                    { responsivePriority: 100, targets: [3, 4, 5, 6] }, // Hide everything else first
+                    { visible: false, targets: [3, 4, 5, 6] }   // Hide extra info by default
                 ],
+                
                 dom: 'lfrtip', 
                 paging: true, 
                 ordering: true, 
