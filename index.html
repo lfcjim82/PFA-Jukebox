@@ -152,7 +152,7 @@
         // --- FIREBASE IMPORTS ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // setLogLevel('Debug'); // Uncomment this line to see detailed Firebase logs
 
@@ -165,13 +165,13 @@
         let allTracks = []; 
         const trackListElement = document.getElementById('track-list');
         const searchInput = document.getElementById('search-input');
-        const statusIndicator = document.getElementById('status-indicator');
         
         // Firebase / Firestore setup
         let db;
         let auth;
         let userId = null;
         let isAuthReady = false;
+        let isTracksLoaded = false; // Flag to track when CSV data is ready
         let favoriteTrackNos = new Set();
         let currentView = 'all'; // 'all' or 'favorites'
 
@@ -196,23 +196,28 @@
         function loadFavorites() {
             if (!db || !isAuthReady) return;
 
+            // Use onSnapshot to listen for real-time updates to the favorites document
             onSnapshot(getFavoritesDocRef(), (docSnapshot) => {
                 if (docSnapshot.exists()) {
                     const data = docSnapshot.data();
+                    // Ensure data.trackNos is an array before setting the Set
                     const trackArray = Array.isArray(data.trackNos) ? data.trackNos : [];
                     favoriteTrackNos = new Set(trackArray);
                     console.log(`Loaded ${favoriteTrackNos.size} favorites.`);
                 } else {
+                    // Initialize as an empty set if the document doesn't exist yet
                     favoriteTrackNos = new Set();
                     console.log("No favorites list found. Starting new set.");
                 }
                 
-                // Re-render the list to update heart icons and filtering
-                if (allTracks.length > 0) {
+                // CRITICAL SYNCHRONIZATION POINT: 
+                // Only render if the tracks (CSV data) are also fully loaded
+                if (isTracksLoaded) {
                     const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
                     renderTracks(tracksToRender);
                     updateViewButtonText();
                 }
+
             }, (error) => {
                 console.error("Error loading favorites:", error);
             });
@@ -355,9 +360,8 @@
         }
 
 
-        // --- DATA LOADING ---
+        // --- DATA LOADING (CSV) ---
         function useFallbackData() {
-            // Papa is a global variable due to external script loading
             Papa.parse(fallbackCSV, {
                 header: true,
                 skipEmptyLines: true,
@@ -371,16 +375,19 @@
             // REMOVE EMPTY ROWS
             allTracks = data.filter(row => row['Track Name'] && row['Track Name'].trim() !== '');
             
-            // Update the title bar immediately with the count after processing
-            updateViewButtonText(); 
+            // Set the flag that CSV data is ready
+            isTracksLoaded = true; // NEW: Set flag to true
 
-            // If authentication is already ready (e.g., fallback data loaded after Firebase), render immediately
+            // Update the UI with the total track count
+            updateViewButtonText(); 
+            
+            // RENDER LOGIC: Only trigger a render if the favorites list is already loaded (isAuthReady is true)
+            // If isAuthReady is false, the upcoming loadFavorites will trigger the render.
             if (isAuthReady) {
                 const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
                 renderTracks(tracksToRender);
                 updateViewButtonText();
             }
-            // If not ready, the onAuthStateChanged listener in initializeFirebase will trigger the first render.
         }
 
         // --- RENDER TRACKS: THIS CREATES THE HTML FOR EACH SONG ---
@@ -512,18 +519,18 @@
 
         // --- SEARCH HANDLER: LISTENS FOR TYPING ---
         searchInput.addEventListener('input', (e) => {
+            if (!isTracksLoaded) return; // Prevent search on incomplete data
             const tracksToRender = filterAndSearchTracks(e.target.value, allTracks, currentView, favoriteTrackNos);
             renderTracks(tracksToRender);
         });
 
         // START THE APP
         function init() {
-            // First, start Firebase initialization (async)
+            // 1. Start Firebase initialization (async)
             initializeFirebase();
             
-            // Then, load CSV data (async)
+            // 2. Load CSV data (async)
             try {
-                // Papa is a global object, so it's accessed here directly.
                 Papa.parse('tracks.csv', {
                     download: true,
                     header: true,
