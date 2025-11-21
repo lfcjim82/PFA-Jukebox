@@ -8,36 +8,29 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
     
     <style>
+        /* BASIC BODY STYLES */
         body {
             font-family: Arial, sans-serif;
             padding-top: 20px;
             padding-bottom: 20px;
         }
+        /* CONTAINER TO KEEP THE TABLE CENTRED AND WITHIN A MAX WIDTH */
         .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 0 15px;
         }
 
-        /* Set a minimal width for the first column (No.) */
-        #tracksTable th:nth-child(1),
-        #tracksTable td:nth-child(1) {
-            width: 70px !important; 
-            max-width: 70px !important;
-            white-space: nowrap; 
-            text-align: center;
-        }
-
-        /* Styles to Center the Search/Filter Box */
+        /* STYLES TO CENTER THE DATATABLES SEARCH/FILTER BOX */
         .dataTables_filter {
             width: 100%;
-            text-align: center; 
+            text-align: center; /* CENTERS THE LABEL/INPUT CONTAINER */
             margin-bottom: 15px; 
         }
         .dataTables_filter label {
             width: 100%;
-            display: flex; 
-            justify-content: center; 
+            display: flex; /* USES FLEXBOX TO ALIGN ITEMS */
+            justify-content: center; /* CENTERS THE INPUT FIELD HORIZONTALLY */
             align-items: center;
         }
         .dataTables_filter input {
@@ -48,7 +41,7 @@
             padding: 6px 12px;
         }
 
-        /* Custom style for Jukebox title */
+        /* CUSTOM STYLE FOR THE MAIN TITLE */
         h1.title {
             text-align: center;
             font-size: 1.8em;
@@ -56,7 +49,7 @@
             margin-bottom: 20px;
         }
 
-        /* Styling the Link Buttons */
+        /* STYLING FOR THE SPOTIFY AND YOUTUBE LINK BUTTONS */
         .link-button {
             display: inline-block;
             padding: 4px 8px;
@@ -68,12 +61,12 @@
             white-space: nowrap;
         }
         .spotify-link {
-            background-color: #1DB954; 
+            background-color: #1DB954; /* SPOTIFY GREEN */
             color: white;
             border: 1px solid #1DB954;
         }
         .youtube-link {
-            background-color: #FF0000; 
+            background-color: #FF0000; /* YOUTUBE RED */
             color: white;
             border: 1px solid #FF0000;
         }
@@ -108,49 +101,51 @@
 <script>
 $(document).ready(function() {
     
-    // 1. Use PapaParse to fetch and parse the CSV file
+    // 1. USE PAPAPARSE TO FETCH AND PARSE THE CSV FILE (tracks.csv)
     Papa.parse('tracks.csv', {
-        download: true,       
-        header: true,         
-        skipEmptyLines: true, 
-        // 🛠️ FIX 1: Explicitly set encoding to UTF-8 to strip the BOM from the header key
-        encoding: 'utf-8', 
+        download: true,       // TELLS PAPAPARSE TO FETCH THE FILE FROM THE URL
+        header: true,         // TELLS PAPAPARSE TO USE THE FIRST ROW AS COLUMN HEADERS (KEYS)
+        skipEmptyLines: true, // IGNORES ANY COMPLETELY BLANK ROWS AT THE END OF THE CSV
+        encoding: 'utf-8',    // CRUCIAL FIX: EXPLICITLY SETS ENCODING TO UTF-8 TO STRIP THE INVISIBLE BOM CHARACTER FROM THE 'NO.' HEADER KEY
+        
         complete: function(results) {
             
             var csvData = results.data;
             
-            // 2. Initialize DataTables with the processed data
+            // 2. INITIALIZE DATATABLES WITH THE PROCESSED DATA
             $('#tracksTable').DataTable({
-                data: csvData, 
+                data: csvData, // PASSES THE PARSED CSV DATA DIRECTLY TO DATATABLES
                 
-                // Define the columns and data mapping
+                // DEFINES THE COLUMNS, DATA KEYS, TITLES, AND WIDTHS
                 columns: [
-                    // 🛠️ FIX 2: Using the clean key 'No.' without the BOM character
+                    // CRITICAL: 'data' MUST EXACTLY MATCH THE HEADER IN YOUR CSV (e.g., 'No.' without the BOM)
+                    // FIXED WIDTH: Ensures this column is always small
                     { data: 'No.', title: 'No.', width: "70px" },
+                    // PERCENTAGE WIDTH: Takes up 55% of the remaining space
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
+                    // PERCENTAGE WIDTH: Takes up 30% of the remaining space
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Year Released
+                    // HIDDEN DATA COLUMNS - KEYS MUST INCLUDE THE TRAILING COLONS
                     { data: 'Year Released', title: 'Year Released' },
-                    
-                    // Album (with colon in key)
                     { data: 'Album:', title: 'Album' },
                     
-                    // Render Spotify Link (with colon in key)
+                    // RENDER SPOTIFY LINK
                     { 
-                        data: 'Spotify Link:', 
+                        data: 'Spotify Link:', // KEY INCLUDES COLON
                         title: 'Spotify',
                         render: function(data, type, row) {
                             if (data) {
+                                // DISPLAYS A BUTTON/LINK INSTEAD OF THE FULL URL
                                 return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
                             }
                             return '';
                         }
                     },
                     
-                    // Render YouTube Link (with colon in key)
+                    // RENDER YOUTUBE LINK
                     { 
-                        data: 'Youtube Link:', 
+                        data: 'Youtube Link:', // KEY INCLUDES COLON
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
@@ -161,13 +156,15 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. Enable Responsive extension and custom modal detail view
+                // 3. ENABLE RESPONSIVE EXTENSION AND CUSTOM MODAL DETAIL VIEW
                 responsive: {
                     details: {
+                        // SETS THE HIDDEN DATA TO APPEAR IN A NICE MODAL/POPUP
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                                // CUSTOM HEADER TEXT FOR THE MODAL POPUP
+                                return 'DETAILS FOR '+data['Track Name']+' BY '+data['Artist'];
                             }
                         } ),
                         renderer: $.fn.dataTable.Responsive.renderer.tableAll({
@@ -176,32 +173,32 @@ $(document).ready(function() {
                     }
                 },
 
-                // 4. Define which columns are visible and which are hidden
+                // 4. DEFINE WHICH COLUMNS ARE VISIBLE AND SET HIDE/SHOW PRIORITY
                 columnDefs: [
-                    // Highest Priority (Last to hide): Track Name (1) & Artist (2)
+                    // PRIORITY 1: HIGHEST PRIORITY (LAST TO HIDE) - GUARANTEES TRACK NAME (1) & ARTIST (2) STAY VISIBLE
                     { responsivePriority: 1, targets: [1, 2] }, 
                     
-                    // Second Priority: No. (0) 
+                    // PRIORITY 2: SECOND PRIORITY - THE TRACK CODE (0) IS THE NEXT MOST IMPORTANT
                     { responsivePriority: 2, targets: 0 }, 
                     
-                    // Lowest Priority: Push all other columns into the '+' button.
+                    // PRIORITY 100: LOWEST PRIORITY - PUSHES ALL OTHER COLUMNS INTO THE '+' BUTTON.
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
                     
-                    // Keep these columns explicitly hidden on the main table
+                    // EXPLICITLY HIDES THESE COLUMNS ON THE MAIN TABLE VIEW
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
-                // 5. General table appearance options
-                dom: 'lfrtip', 
+                // 5. GENERAL TABLE APPEARANCE OPTIONS
+                dom: 'lfrtip', // CONTROLS LAYOUT (LENGTH, FILTER/SEARCH, RESPONSIVE BUTTONS, TABLE, INFO, PAGINATION)
                 paging: true,
                 ordering: true,
                 info: true,
                 searching: true,
                 
-                // 🛠️ FIX 3: Updated Search Placeholder text
+                // SEARCH PLACEHOLDER AND LABEL
                 language: {
-                    search: "Search:", 
-                    searchPlaceholder: "search for track or artist"
+                    search: "Search:", // THE TEXT LABEL NEXT TO THE SEARCH BOX
+                    searchPlaceholder: "search for track or artist" // THE TEXT INSIDE THE EMPTY SEARCH BOX
                 }
             });
         }
