@@ -442,27 +442,30 @@
                 
                 // --- THE HTML STRUCTURE FOR A SINGLE ROW ---
                 row.innerHTML = `
-                    <!-- VISIBLE PART OF THE ROW (CLICKABLE) -->
-                    <div class="flex items-center gap-2 p-3 cursor-pointer select-none" onclick="window.toggleDetails('${uniqueId}')">
+                    <!-- VISIBLE PART OF THE ROW -->
+                    <div class="flex items-center gap-2 p-3 select-none">
                         
-                        <!-- TRACK NUMBER (WHITE TEXT) -->
-                        <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded-md shadow-inner">
-                            ${num}
+                        <!-- TRACK INFO AREA (NEW DEDICATED CLICK TARGET FOR DETAILS) -->
+                        <div class="flex items-center flex-1 min-w-0 cursor-pointer" onclick="window.toggleDetails('${uniqueId}')">
+                            <!-- TRACK NUMBER (WHITE TEXT) -->
+                            <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded-md shadow-inner">
+                                ${num}
+                            </div>
+
+                            <!-- TRACK TITLE & ARTIST (MOBILE VIEW) -->
+                            <div class="flex-1 px-2 min-w-0 flex flex-col justify-center">
+                                <div class="text-slate-100 font-medium truncate text-base">${title}</div>
+                                <!-- ARTIST SHOWS HERE ONLY ON MOBILE -->
+                                <div class="text-xs text-slate-400 truncate sm:hidden">${artist}</div>
+                            </div>
+
+                            <!-- ARTIST COLUMN (DESKTOP VIEW ONLY) -->
+                            <div class="hidden sm:block flex-1 px-2 text-slate-400 truncate">
+                                ${artist}
+                            </div>
                         </div>
 
-                        <!-- TRACK TITLE & ARTIST (MOBILE VIEW) -->
-                        <div class="flex-1 px-2 min-w-0 flex flex-col justify-center">
-                            <div class="text-slate-100 font-medium truncate text-base">${title}</div>
-                            <!-- ARTIST SHOWS HERE ONLY ON MOBILE -->
-                            <div class="text-xs text-slate-400 truncate sm:hidden">${artist}</div>
-                        </div>
-
-                        <!-- ARTIST COLUMN (DESKTOP VIEW ONLY) -->
-                        <div class="hidden sm:block flex-1 px-2 text-slate-400 truncate">
-                            ${artist}
-                        </div>
-
-                        <!-- ACTIONS: QUEUE (+) AND FAVORITE (HEART) -->
+                        <!-- ACTIONS: QUEUE (+) AND FAVORITE (HEART) - THESE BUTTONS DO NOT OPEN DETAILS -->
                         <div class="w-20 flex justify-end items-center gap-1 shrink-0">
                             <!-- 1. QUEUE/ADD BUTTON (+) -->
                             <button 
