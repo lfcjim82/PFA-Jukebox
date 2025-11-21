@@ -19,6 +19,16 @@
             padding: 0 15px;
         }
 
+        /* 🛠️ FIX 1: Force Disc & Track Column Width */
+        #tracksTable th:nth-child(1),
+        #tracksTable td:nth-child(1) {
+            /* Set a minimal width just enough for the 4-digit code (XX-XX) and the green plus icon */
+            width: 70px !important; 
+            max-width: 70px !important;
+            white-space: nowrap; /* Prevent the code from wrapping */
+            text-align: center;
+        }
+
         /* Styles to Center the Search/Filter Box */
         .dataTables_filter {
             width: 100%;
@@ -59,12 +69,12 @@
             white-space: nowrap;
         }
         .spotify-link {
-            background-color: #1DB954; /* Spotify green */
+            background-color: #1DB954; 
             color: white;
             border: 1px solid #1DB954;
         }
         .youtube-link {
-            background-color: #FF0000; /* YouTube red */
+            background-color: #FF0000; 
             color: white;
             border: 1px solid #FF0000;
         }
@@ -101,9 +111,9 @@ $(document).ready(function() {
     
     // 1. Use PapaParse to fetch and parse the CSV file
     Papa.parse('tracks.csv', {
-        download: true,       // Fetch the file from the URL
-        header: true,         // Treat the first row as column headers
-        skipEmptyLines: true, // Ignore any blank rows
+        download: true,       
+        header: true,         
+        skipEmptyLines: true, 
         complete: function(results) {
             
             var csvData = results.data;
@@ -118,7 +128,7 @@ $(document).ready(function() {
                     { data: 'Track Name', title: 'Track Name' },
                     { data: 'Artist', title: 'Artist' },
                     
-                    // Hidden data columns - using the EXACT CSV header names
+                    // Hidden data columns
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
@@ -147,16 +157,18 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. Enable the Responsive extension (GREEN + BUTTON FIX)
+                // 3. Enable the Responsive extension
                 responsive: true, 
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // Visible: Disc & Track, Track Name, Artist
-                    { responsivePriority: 1, targets: [0, 1] }, 
-                    { responsivePriority: 2, targets: 2 },     
+                    // 🛠️ FIX 2: Set the highest priority (1) for ALL three key columns.
+                    { responsivePriority: 1, targets: [0, 1, 2] }, // Disc & Track, Track Name, Artist
                     
-                    // Hidden: Year Released, Album Name, Spotify Link, and YouTube Link (targets 3, 4, 5, 6)
+                    // Set a very low priority (100) for all other columns, guaranteeing they hide first.
+                    { responsivePriority: 100, targets: [3, 4, 5, 6] },
+                    
+                    // Keep these columns explicitly hidden on the main table
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
