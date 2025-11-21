@@ -1,353 +1,556 @@
 <!DOCTYPE html>
 <!-- 
-    WELCOME TO YOUR JUKEBOX CODE! 
-    THIS IS THE MAIN FILE THAT CONTROLS EVERYTHING ON THE PAGE.
-    
-    GUIDE TO EDITING:
-    1. TEXT IN GREY (LIKE THIS) ARE COMMENTS. THEY DO NOT AFFECT THE CODE.
-    2. LOOK FOR THE SECTIONS IN CAPITAL LETTERS BELOW TO FIND WHAT YOU WANT TO CHANGE.
+    WELCOME TO YOUR JUKEBOX CODE! 
+    THIS IS THE MAIN FILE THAT CONTROLS EVERYTHING ON THE PAGE.
+    
+    GUIDE TO EDITING:
+    1. TEXT IN GREY (LIKE THIS) ARE COMMENTS. THEY DO NOT AFFECT THE CODE.
+    2. LOOK FOR THE SECTIONS IN CAPITAL LETTERS BELOW TO FIND WHAT YOU WANT TO CHANGE.
 -->
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PFA Jukebox</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PFA Jukebox</title>
 
-    <!-- ================================================================================== -->
-    <!-- EXTERNAL TOOLS (DO NOT TOUCH THESE LINKS)                                          -->
-    <!-- THESE LINES LOAD THE TOOLS WE NEED TO MAKE THE SITE LOOK GOOD AND READ THE CSV FILE -->
-    <!-- ================================================================================== -->
-    
-    <!-- TAILWIND CSS: MAKES STYLING EASIER (COLORS, SPACING, FONTS) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FONT AWESOME: PROVIDES THE ICONS (LIKE THE MAGNIFYING GLASS AND SPOTIFY LOGO) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- PAPAPARSE: THE TOOL THAT READS YOUR 'TRACKS.CSV' FILE -->
-    <!-- FIX: Corrected the filename from 'papaparser.min.js' to 'papaparse.min.js' -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- ================================================================================== -->
+    <!-- EXTERNAL TOOLS (DO NOT TOUCH THESE LINKS)                                          -->
+    <!-- THESE LINES LOAD THE TOOLS WE NEED TO MAKE THE SITE LOOK GOOD AND READ THE CSV FILE -->
+    <!-- ================================================================================== -->
+    
+    <!-- TAILWIND CSS: MAKES STYLING EASIER (COLORS, SPACING, FONTS) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FONT AWESOME: PROVIDES THE ICONS (LIKE THE MAGNIFYING GLASS AND SPOTIFY LOGO) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PAPAPARSE: THE TOOL THAT READS YOUR 'TRACKS.CSV' FILE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-    <!-- ================================================================================== -->
-    <!-- CUSTOM STYLES (CSS)                                                                -->
-    <!-- USE THIS SECTION TO FINE-TUNE SCROLLBARS AND ANIMATIONS                            -->
-    <!-- ================================================================================== -->
-    <style>
-        /* CONTROLS THE SCROLLBAR WIDTH */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        /* CONTROLS THE BACKGROUND COLOR OF THE SCROLLBAR TRACK */
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        /* CONTROLS THE COLOR OF THE SCROLLBAR THUMB (THE PART YOU DRAG) */
-        /* CURRENTLY SET TO GREEN (#4ade80) */
-        ::-webkit-scrollbar-thumb {
-            background: #4ade80;
-            border-radius: 3px;
-        }
-        
-        /* ANIMATION FOR ROWS FADING IN */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    <!-- ================================================================================== -->
+    <!-- CUSTOM STYLES (CSS)                                                                -->
+    <!-- USE THIS SECTION TO FINE-TUNE SCROLLBARS AND ANIMATIONS                            -->
+    <!-- ================================================================================== -->
+    <style>
+        /* CONTROLS THE SCROLLBAR WIDTH */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        /* CONTROLS THE BACKGROUND COLOR OF THE SCROLLBAR TRACK */
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        /* CONTROLS THE COLOR OF THE SCROLLBAR THUMB (THE PART YOU DRAG) */
+        /* CURRENTLY SET TO GREEN (#4ade80) */
+        ::-webkit-scrollbar-thumb {
+            background: #4ade80;
+            border-radius: 3px;
+        }
+        
+        /* ANIMATION FOR ROWS FADING IN */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* HELPER TO HIDE SCROLLBARS IN SPECIFIC AREAS TO KEEP IT CLEAN */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-    </style>
+        /* HELPER TO HIDE SCROLLBARS IN SPECIFIC AREAS TO KEEP IT CLEAN */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
 </head>
 
 <!-- ================================================================================== -->
-<!-- MAIN BODY OF THE PAGE                                                              -->
-<!-- 'bg-slate-900' IS THE DARK BACKGROUND COLOR.                                       -->
-<!-- 'text-slate-200' IS THE DEFAULT TEXT COLOR.                                        -->
+<!-- MAIN BODY OF THE PAGE                                                              -->
+<!-- 'bg-slate-900' IS THE DARK BACKGROUND COLOR.                                       -->
+<!-- 'text-slate-200' IS THE DEFAULT TEXT COLOR.                                        -->
 <!-- ================================================================================== -->
 <body class="bg-slate-900 text-slate-200 font-sans antialiased h-screen flex flex-col overflow-hidden">
 
-    <!-- ================================================================================== -->
-    <!-- HEADER SECTION (TOP BAR)                                                           -->
-    <!-- CONTAINS THE TITLE AND THE SEARCH BOX                                              -->
-    <!-- ================================================================================== -->
-    <header class="bg-slate-800 border-b border-slate-700 shadow-md z-20 shrink-0">
-        <div class="max-w-3xl mx-auto p-4">
-            
-            <!-- TITLE BAR -->
-            <!-- THE 'flex-col' AND 'items-start' CLASSES ALIGN THE TITLE ABOVE THE SEARCH BAR -->
-            <div class="flex flex-col mb-4">
+    <!-- ================================================================================== -->
+    <!-- HEADER SECTION (TOP BAR)                                                           -->
+    <!-- CONTAINS THE TITLE AND THE SEARCH BOX                                              -->
+    <!-- ================================================================================== -->
+    <header class="bg-slate-800 border-b border-slate-700 shadow-md z-20 shrink-0">
+        <div class="max-w-3xl mx-auto p-4">
+            
+            <!-- TITLE BAR & FAVORITES/STATUS BUTTONS (Flex container for main title row) -->
+            <div class="flex justify-between items-start w-full mb-4">
+                
+                <!-- 1. MAIN TITLE TEXT (Aligned left) -->
+                <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-1 shrink-0">
+                    <!-- Musical Note Icons are smaller and tighter -->
+                    <i class="fa-solid fa-music text-xl"></i> 
+                    PFA JUKEBOX 
+                    <i class="fa-solid fa-music text-xl"></i>
+                </h1>
 
-                <div class="flex justify-between items-center w-full">
-                    <!-- MAIN TITLE TEXT -->
-                    <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-3">
-                        
-                        <!-- LEFT MUSICAL NOTE ICON -->
-                        <i class="fa-solid fa-music"></i> 
-                        
-                        <!-- THE TITLE TEXT -->
-                        PFA JUKEBOX 
-                        
-                        <!-- RIGHT MUSICAL NOTE ICON -->
-                        <i class="fa-solid fa-music"></i>
-                    </h1>
+                <!-- 2. ACTIONS AND STATUS (Aligned right, stacked vertically) -->
+                <div class="flex flex-col items-end gap-1 shrink-0">
+                    
+                    <!-- NEW FAVORITES/VIEW MODE BUTTON (Slimmed down) -->
+                    <button id="view-mode-button" 
+                            onclick="switchView()"
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded-full text-xs shadow-md transition duration-150 ease-in-out whitespace-nowrap">
+                        <i class="fa-solid fa-heart mr-2"></i> View Favourites (0)
+                    </button>
+                    
+                    <!-- LOADING STATUS (Moved below button and styled smaller) -->
+                    <div id="status-indicator" class="text-xs flex items-center gap-2">
+                        <span id="loading-text" class="text-slate-500 text-[10px]">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SEARCH BOX SECTION -->
+            <div class="relative">
+                <!-- MAGNIFYING GLASS ICON -->
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                </div>
+                <!-- THE ACTUAL INPUT FIELD WHERE USERS TYPE -->
+                <input type="text" id="search-input" 
+                    class="block w-full pl-10 pr-3 py-3 border border-slate-600 rounded-xl leading-5 bg-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-500 sm:text-base transition duration-150 ease-in-out shadow-lg" 
+                    placeholder="Search by No, Track or Artist...">
+            </div>
+        </div>
+    </header>
 
-                    <!-- LOADING INDICATOR (TOP RIGHT CORNER) -->
-                    <div id="status-indicator" class="text-xs flex items-center gap-2">
-                        <span id="loading-text" class="text-slate-500">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- SEARCH BOX SECTION -->
-            <div class="relative">
-                <!-- MAGNIFYING GLASS ICON -->
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                </div>
-                <!-- THE ACTUAL INPUT FIELD WHERE USERS TYPE -->
-                <input type="text" id="search-input" 
-                    class="block w-full pl-10 pr-3 py-3 border border-slate-600 rounded-xl leading-5 bg-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-slate-700 focus:border-green-500 focus:ring-2 focus:ring-green-500 sm:text-base transition duration-150 ease-in-out shadow-lg" 
-                    placeholder="Search by No, Track or Artist...">
-            </div>
-        </div>
-    </header>
+    <!-- ================================================================================== -->
+    <!-- COLUMN HEADERS ROW (NO, TRACK NAME, ARTIST, ACTIONS)                               -->
+    <!-- ================================================================================== -->
+    <div class="bg-slate-800/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-10 shadow-inner">
+        <div class="max-w-3xl mx-auto px-2 py-2 flex items-center gap-2">
+            <!-- 'NO.' HEADER -->
+            <div class="w-14 text-center shrink-0">No.</div>
+            
+            <!-- 'TRACK NAME' HEADER -->
+            <div class="flex-1 px-2">Track Name</div>
+            
+            <!-- 'ARTIST' HEADER (HIDDEN ON MOBILE PHONES 'hidden', VISIBLE ON TABLETS/PC 'sm:block') -->
+            <div class="hidden sm:block flex-1 px-2">Artist</div>
+            
+            <!-- ACTIONS HEADER (Adjusted for better visual alignment with the centered heart icons) -->
+            <div class="w-10 text-right pr-1 shrink-0">Fav</div>
+        </div>
+    </div>
 
-    <!-- ================================================================================== -->
-    <!-- COLUMN HEADERS ROW (NO, TRACK NAME, ARTIST)                                        -->
-    <!-- THIS IS JUST THE VISUAL LABEL BAR BELOW THE SEARCH BOX                             -->
-    <!-- ================================================================================== -->
-    <div class="bg-slate-800/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-10 shadow-inner">
-        <div class="max-w-3xl mx-auto px-2 py-2 flex items-center gap-2">
-            <!-- 'NO.' HEADER -->
-            <div class="w-14 text-center shrink-0">No.</div>
-            
-            <!-- 'TRACK NAME' HEADER -->
-            <div class="flex-1 px-2">Track Name</div>
-            
-            <!-- 'ARTIST' HEADER (HIDDEN ON MOBILE PHONES 'hidden', VISIBLE ON TABLETS/PC 'sm:block') -->
-            <div class="hidden sm:block flex-1 px-2">Artist</div>
-            
-            <!-- EMPTY SPACE FOR THE PLUS BUTTON -->
-            <div class="w-10 text-center shrink-0"></div>
-        </div>
-    </div>
+    <!-- ================================================================================== -->
+    <!-- TRACK LIST CONTAINER                                                               -->
+    <!-- ================================================================================== -->
+    <main id="track-list" class="flex-1 overflow-y-auto p-2 space-y-3 max-w-3xl mx-auto w-full pb-20">
+        <!-- JAVASCRIPT WILL FILL THIS SPACE -->
+    </main>
 
-    <!-- ================================================================================== -->
-    <!-- TRACK LIST CONTAINER                                                               -->
-    <!-- THIS IS WHERE THE JAVASCRIPT WILL AUTOMATICALLY INJECT THE ROWS OF MUSIC           -->
-    <!-- ================================================================================== -->
-    <main id="track-list" class="flex-1 overflow-y-auto p-2 space-y-3 max-w-3xl mx-auto w-full pb-20">
-        <!-- JAVASCRIPT WILL FILL THIS SPACE -->
-    </main>
+    <!-- ================================================================================== -->
+    <!-- JAVASCRIPT LOGIC SECTION (NOW INCLUDES FIREBASE FOR PERSISTENCE)                   -->
+    <!-- ================================================================================== -->
+    <script type="module">
+        // --- FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // setLogLevel('Debug'); // Uncomment this line to see detailed Firebase logs
 
-    <!-- ================================================================================== -->
-    <!-- JAVASCRIPT LOGIC SECTION                                                           -->
-    <!-- THIS IS THE BRAIN OF THE PAGE. IT READS THE FILE AND CREATES THE BUTTONS           -->
-    <!-- ================================================================================== -->
-    <script>
-        // --- VARIABLES TO STORE DATA ---
-        let allTracks = []; 
-        const trackListElement = document.getElementById('track-list');
-        const searchInput = document.getElementById('search-input');
-        const statusIndicator = document.getElementById('status-indicator');
-        const loadingText = document.getElementById('loading-text');
+        // --- GLOBAL VARIABLES (FROM ENVIRONMENT) ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- FALLBACK DATA (FOR TESTING OR IF CSV FAILS) ---
-        // THESE ARE SAMPLE TRACKS USED IF THE 'tracks.csv' FILE IS NOT ACCESSIBLE
-        const fallbackCSV = `No.,Track Name,Artist,Year Released,Album:,Spotify Link:,Youtube Link:
+        // --- APP STATE VARIABLES ---
+        let allTracks = []; 
+        const trackListElement = document.getElementById('track-list');
+        const searchInput = document.getElementById('search-input');
+        
+        // Firebase / Firestore setup
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+        let isTracksLoaded = false; // Flag to track when CSV data is ready
+        let favoriteTrackNos = new Set();
+        let currentView = 'all'; // 'all' or 'favorites'
+
+        // --- FALLBACK DATA ---
+        const fallbackCSV = `No.,Track Name,Artist,Year Released,Album:,Spotify Link:,Youtube Link:
 00-01,Heroes,David Bowie,1977,Bowie the singles 1968-1993,https://open.spotify.com/search/Heroes%20David%20Bowie,https://www.youtube.com/results?search_query=Heroes%20David%20Bowie%20music%20video
 00-02,Beauty and the Beast,David Bowie,1978,Bowie the singles 1968-1993,https://open.spotify.com/search/Beauty%20and%20the%20Beast%20David%20Bowie,https://www.youtube.com/results?search_query=Beauty%20and%20the%20Beast%20David%20Bowie%20music%20video
 60-05,Let Me Put My Love Into You,AC/DC,1980,Back in Black,https://open.spotify.com/search/Let%20Me%20Put%20My%20Love%20Into%20You%20AC/DC,https://www.youtube.com/results?search_query=Let%20Me%20Put%20My%20Love%20Into%20You%20AC/DC%20music%20video
 60-06,Back In Black,AC/DC,1980,Back in Black,https://open.spotify.com/search/Back%20In%20Black%20AC/DC,https://www.youtube.com/results?search_query=Back%20In%20Black%20AC/DC%20music%20video
 60-07,You Shook Me All Night Long,AC/DC,1980,Back in Black,https://open.spotify.com/search/You%20Shook%20Me%20All%20Night%20Long%20AC/DC,https://www.youtube.com/results?search_query=You%20Shook%20Me%20All%20Night%20Long%20AC/DC`;
 
-        // --- INITIALIZATION: START THE APP ---
-        function init() {
-            // TRY TO LOAD 'tracks.csv'
-            try {
-                // Papa is now defined because the correct script URL is loaded in the head
-                Papa.parse('tracks.csv', {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        console.log("CSV Loaded successfully");
-                        processData(results.data);
-                    },
-                    error: function(err) {
-                        console.warn("Could not load tracks.csv. Using fallback data.");
-                        useFallbackData();
-                    }
-                });
-            } catch (error) {
-                console.warn("Caught synchronous error loading CSV. Using fallback data.");
-                useFallbackData();
-            }
-        }
+        // --- FIREBASE UTILITIES ---
+        
+        // Defines the Firestore path for the user's favorites list
+        function getFavoritesDocRef() {
+            // Path: /artifacts/{appId}/users/{userId}/favourites/list
+            const path = `/artifacts/${appId}/users/${userId}/favourites`;
+            return doc(db, path, 'list');
+        }
 
-        // --- USE FALLBACK DATA IF REAL FILE IS MISSING ---
-        function useFallbackData() {
-            Papa.parse(fallbackCSV, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    processData(results.data);
-                }
-            });
-        }
+        // Loads and listens for real-time changes to the favorites list
+        function loadFavorites() {
+            if (!db || !isAuthReady) return;
 
-        // --- PROCESS DATA: PREPARE THE LIST FOR DISPLAY ---
-        function processData(data) {
-            // REMOVE EMPTY ROWS
-            allTracks = data.filter(row => row['Track Name'] && row['Track Name'].trim() !== '');
-            
-            // UPDATE THE LOADING STATUS TEXT (TOP RIGHT)
-            statusIndicator.innerHTML = `<span class="text-green-400 font-semibold">${allTracks.length} tracks loaded</span>`;
+            // Use onSnapshot to listen for real-time updates to the favorites document
+            onSnapshot(getFavoritesDocRef(), (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const data = docSnapshot.data();
+                    // Ensure data.trackNos is an array before setting the Set
+                    const trackArray = Array.isArray(data.trackNos) ? data.trackNos : [];
+                    favoriteTrackNos = new Set(trackArray);
+                    console.log(`Loaded ${favoriteTrackNos.size} favorites.`);
+                } else {
+                    // Initialize as an empty set if the document doesn't exist yet
+                    favoriteTrackNos = new Set();
+                    console.log("No favorites list found. Starting new set.");
+                }
+                
+                // CRITICAL SYNCHRONIZATION POINT: 
+                // Only render if the tracks (CSV data) are also fully loaded
+                if (isTracksLoaded) {
+                    const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
+                    renderTracks(tracksToRender);
+                    updateViewButtonText();
+                }
 
-            // DRAW THE LIST ON SCREEN
-            renderTracks(allTracks);
-        }
+            }, (error) => {
+                console.error("Error loading favorites:", error);
+            });
+        }
 
-        // --- RENDER TRACKS: THIS CREATES THE HTML FOR EACH SONG ---
-        function renderTracks(tracks) {
-            trackListElement.innerHTML = ''; // CLEAR THE LIST BEFORE DRAWING
+        // Saves the current set of favorites to Firestore
+        async function saveFavorites() {
+            if (!db || !userId) {
+                console.warn("Cannot save favorites: DB not ready or User ID missing.");
+                return;
+            }
+            try {
+                // Save the Set as an Array
+                await setDoc(getFavoritesDocRef(), { trackNos: Array.from(favoriteTrackNos) }, { merge: false });
+                console.log("Favorites saved successfully.");
+            } catch (error) {
+                console.error("Error saving favorites:", error);
+            }
+        }
+        
+        // Initializes Firebase and authenticates the user
+        async function initializeFirebase() {
+            if (!firebaseConfig) {
+                console.error("Firebase config not found. Favorites feature disabled.");
+                isAuthReady = true;
+                return;
+            }
 
-            // IF SEARCH RETURNS NOTHING
-            if (tracks.length === 0) {
-                trackListElement.innerHTML = `
-                    <div class="text-center py-10 text-slate-500">
-                        No tracks found matching your search.
-                    </div>`;
-                return;
-            }
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // 1. Authenticate user using custom token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-            // LOOP THROUGH EVERY TRACK AND CREATE THE HTML
-            tracks.forEach((track, index) => {
-                const uniqueId = `track-${index}`;
-                
-                // --- READ DATA FROM CSV COLUMNS ---
-                // IF YOU CHANGE HEADERS IN EXCEL, CHANGE THEM HERE TOO
-                const num = track['No.'] || 'N/A';
-                const title = track['Track Name'] || 'Unknown Title';
-                const artist = track['Artist'] || 'Unknown Artist';
-                const year = track['Year Released'] || '';
-                const album = track['Album:'] || '';
-                const spotify = track['Spotify Link:'];
-                const youtube = track['Youtube Link:'];
+                // 2. Set up Auth Listener
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase Auth Ready. User ID:", userId);
+                    } else {
+                        // Use a random ID if anonymous sign-in failed or no user found (shouldn't happen with anonymous sign-in)
+                        userId = crypto.randomUUID(); 
+                        console.log("Firebase Auth Ready. Using Anonymous/Fallback ID:", userId);
+                    }
+                    isAuthReady = true;
+                    // Start listening for data immediately after authentication is confirmed
+                    loadFavorites(); 
+                });
 
-                // STYLE FOR THE MAIN ROW CONTAINER (Background logo class removed)
-                const row = document.createElement('div');
-                row.className = 'bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden fade-in hover:border-green-600/50 hover:bg-slate-700/50 transition-all duration-200';
-                
-                // --- THE HTML STRUCTURE FOR A SINGLE ROW ---
-                row.innerHTML = `
-                    <!-- VISIBLE PART OF THE ROW (CLICKABLE) -->
-                    <div class="flex items-center gap-2 p-3 cursor-pointer select-none" onclick="toggleDetails('${uniqueId}')">
-                        
-                        <!-- TRACK NUMBER (WHITE TEXT) -->
-                        <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded-md shadow-inner">
-                            ${num}
-                        </div>
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                isAuthReady = true;
+            }
+        }
 
-                        <!-- TRACK TITLE & ARTIST (MOBILE VIEW) -->
-                        <div class="flex-1 px-2 min-w-0 flex flex-col justify-center">
-                            <div class="text-slate-100 font-medium truncate text-base">${title}</div>
-                            <!-- ARTIST SHOWS HERE ONLY ON MOBILE -->
-                            <div class="text-xs text-slate-400 truncate sm:hidden">${artist}</div>
-                        </div>
+        // --- APP LOGIC ---
+        
+        // Toggles a track's favorite status and saves it
+        window.toggleFavorite = function(trackNo, event) {
+            // Prevent the parent row from expanding/collapsing when clicking the heart
+            event.stopPropagation(); 
 
-                        <!-- ARTIST COLUMN (DESKTOP VIEW ONLY) -->
-                        <div class="hidden sm:block flex-1 px-2 text-slate-400 truncate">
-                            ${artist}
-                        </div>
+            if (!isAuthReady) {
+                console.warn("Authentication not ready. Cannot toggle favorite.");
+                return;
+            }
 
-                        <!-- THE GREEN PLUS BUTTON -->
-                        <div class="w-10 flex justify-center shrink-0">
-                            <button id="btn-${uniqueId}" class="w-8 h-8 rounded-full bg-green-500 hover:bg-green-400 text-slate-900 flex items-center justify-center transition-transform duration-200 shadow-xl shadow-green-900/40">
-                                <i class="fa-solid fa-plus text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
+            if (favoriteTrackNos.has(trackNo)) {
+                favoriteTrackNos.delete(trackNo);
+            } else {
+                favoriteTrackNos.add(trackNo);
+            }
+            
+            // Save the updated list to Firestore
+            saveFavorites();
+            // Note: The UI re-render is handled by the real-time 'onSnapshot' listener in loadFavorites.
+        };
 
-                    <!-- HIDDEN DETAILS (EXPANDS WHEN CLICKED) -->
-                    <div id="${uniqueId}" class="hidden bg-slate-900/90 border-t border-slate-700/50 text-sm">
-                        <div class="p-4 grid gap-3">
-                            
-                            <!-- EXTRA INFO: YEAR AND ALBUM -->
-                            <div class="flex flex-wrap gap-4 text-slate-400">
-                                ${year ? `<div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-green-500"></i> ${year}</div>` : ''}
-                                ${album ? `<div class="flex items-center gap-2"><i class="fa-solid fa-compact-disc text-green-500"></i> ${album}</div>` : ''}
-                            </div>
+        // Toggles between viewing All Tracks and Favourites
+        window.switchView = function() {
+            currentView = (currentView === 'all') ? 'favorites' : 'all';
+            
+            // Re-run search/filter logic and render
+            searchInput.value = ''; // Clear search when switching views
+            const tracksToRender = filterAndSearchTracks('', allTracks, currentView, favoriteTrackNos);
+            renderTracks(tracksToRender);
+            
+            updateViewButtonText();
+        }
 
-                            <!-- BUTTONS: SPOTIFY AND YOUTUBE -->
-                            <div class="flex gap-3 mt-4">
-                                <!-- SPOTIFY BUTTON LOGIC -->
-                                ${spotify && spotify.trim() !== '' ? `
-                                    <a href="${spotify}" target="_blank" class="flex-1 bg-[#1DB954] hover:bg-[#1ed760] text-white py-3 px-4 rounded-lg text-center font-semibold transition flex items-center justify-center gap-2 shadow-xl shadow-green-900/30">
-                                        <i class="fa-brands fa-spotify text-xl"></i> Spotify
-                                    </a>
-                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-3 px-4 rounded-lg text-center cursor-not-allowed flex items-center justify-center gap-2">No Spotify Link</span>'}
-                                
-                                <!-- YOUTUBE BUTTON LOGIC -->
-                                ${youtube && youtube.trim() !== '' ? `
-                                    <a href="${youtube}" target="_blank" class="flex-1 bg-[#FF0000] hover:bg-[#ff3333] text-white py-3 px-4 rounded-lg text-center font-semibold transition flex items-center justify-center gap-2 shadow-xl shadow-red-900/30">
-                                        <i class="fa-brands fa-youtube text-xl"></i> YouTube
-                                    </a>
-                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-3 px-4 rounded-lg text-center cursor-not-allowed flex items-center justify-center gap-2">No YouTube Link</span>'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                trackListElement.appendChild(row);
-            });
-        }
+        // Updates the text and style of the view toggle button
+        function updateViewButtonText() {
+            const button = document.getElementById('view-mode-button');
+            const statusSpan = document.getElementById('loading-text');
+            const favCount = favoriteTrackNos.size;
+            
+            // Update track count text (placed below button now)
+            statusSpan.textContent = `${allTracks.length} tracks loaded`;
 
-        // --- CLICK HANDLER: OPENS AND CLOSES THE ROW ---
-        window.toggleDetails = function(id) {
-            const detailsPanel = document.getElementById(id);
-            const button = document.getElementById(`btn-${id}`);
 
-            if (detailsPanel.classList.contains('hidden')) {
-                // OPEN THE ROW
-                detailsPanel.classList.remove('hidden');
-                button.classList.add('bg-slate-200', 'rotate-45'); // ROTATE BUTTON TO MAKE AN 'X'
-                button.classList.remove('bg-green-500');
-            } else {
-                // CLOSE THE ROW
-                detailsPanel.classList.add('hidden');
-                button.classList.remove('bg-slate-200', 'rotate-45');
-                button.classList.add('bg-green-500');
-            }
-        };
+            if (currentView === 'all') {
+                button.innerHTML = `<i class="fa-solid fa-heart mr-2"></i> View Favourites (${favCount})`;
+                button.classList.remove('bg-yellow-600', 'text-slate-900', 'hover:bg-yellow-700');
+                button.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700');
+            } else {
+                button.innerHTML = `<i class="fa-solid fa-list mr-2"></i> View All Tracks (${allTracks.length})`;
+                button.classList.remove('bg-green-600', 'text-white', 'hover:bg-green-700');
+                button.classList.add('bg-yellow-600', 'text-slate-900', 'hover:bg-yellow-700');
+            }
+        }
+        
+        // Combines search and view filtering logic
+        function filterAndSearchTracks(searchTerm, tracks, view, favSet) {
+            let filtered = tracks;
+            
+            // 1. Filter by Favourites view
+            if (view === 'favorites') {
+                filtered = filtered.filter(track => favSet.has(track['No.']));
+            }
 
-        // --- SEARCH HANDLER: LISTENS FOR TYPING ---
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            
-            const filtered = allTracks.filter(track => {
-                const title = (track['Track Name'] || '').toLowerCase();
-                const artist = (track['Artist'] || '').toLowerCase();
-                const num = (track['No.'] || '').toLowerCase();
-                
-                // CHECKS IF SEARCH TERM MATCHES TITLE, ARTIST, OR NUMBER
-                return title.includes(searchTerm) || 
-                       artist.includes(searchTerm) || 
-                       num.includes(searchTerm);
-            });
+            // 2. Filter by Search term
+            if (searchTerm) {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                filtered = filtered.filter(track => {
+                    const title = (track['Track Name'] || '').toLowerCase();
+                    const artist = (track['Artist'] || '').toLowerCase();
+                    const num = (track['No.'] || '').toLowerCase();
+                    return title.includes(lowerSearchTerm) || 
+                           artist.includes(lowerSearchTerm) || 
+                           num.includes(lowerSearchTerm);
+                });
+            }
+            return filtered;
+        }
 
-            renderTracks(filtered);
-        });
 
-        // START THE APP
-        init();
+        // --- DATA LOADING (CSV) ---
+        function useFallbackData() {
+            Papa.parse(fallbackCSV, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processData(results.data);
+                }
+            });
+        }
 
-    </script>
+        function processData(data) {
+            // REMOVE EMPTY ROWS
+            allTracks = data.filter(row => row['Track Name'] && row['Track Name'].trim() !== '');
+            
+            // Set the flag that CSV data is ready
+            isTracksLoaded = true; // NEW: Set flag to true
+
+            // Update the UI with the total track count
+            updateViewButtonText(); 
+            
+            // RENDER LOGIC: Only trigger a render if the favorites list is already loaded (isAuthReady is true)
+            // If isAuthReady is false, the upcoming loadFavorites will trigger the render.
+            if (isAuthReady) {
+                const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
+                renderTracks(tracksToRender);
+                updateViewButtonText();
+            }
+        }
+
+        // --- RENDER TRACKS: THIS CREATES THE HTML FOR EACH SONG ---
+        function renderTracks(tracks) {
+            trackListElement.innerHTML = ''; // CLEAR THE LIST BEFORE DRAWING
+
+            // Display message if no tracks are found
+            if (tracks.length === 0) {
+                const message = currentView === 'favorites' 
+                    ? `Your favorites list is empty. Add tracks by clicking the heart icon!`
+                    : `No tracks found matching your search.`;
+
+                trackListElement.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        ${message}
+                    </div>`;
+                return;
+            }
+
+            // LOOP THROUGH EVERY TRACK AND CREATE THE HTML
+            tracks.forEach((track, index) => {
+                const uniqueId = `track-${track['No.']}`; // Using No. for stable ID
+                
+                // --- READ DATA FROM CSV COLUMNS ---
+                const num = track['No.'] || 'N/A';
+                const title = track['Track Name'] || 'Unknown Title';
+                const artist = track['Artist'] || 'Unknown Artist';
+                const year = track['Year Released'] || '';
+                const album = track['Album:'] || '';
+                const spotify = track['Spotify Link:'];
+                const youtube = track['Youtube Link:'];
+
+                // Determine if this track is a favorite
+                const isFavorite = favoriteTrackNos.has(num);
+                const favIconClass = isFavorite 
+                    ? 'text-red-500 fa-solid fa-heart' // Filled red heart
+                    : 'text-slate-400 fa-regular fa-heart group-hover:text-red-400'; // Outlined heart
+
+                // STYLE FOR THE MAIN ROW CONTAINER
+                const row = document.createElement('div');
+                row.className = 'bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden fade-in hover:border-green-600/50 hover:bg-slate-700/50 transition-all duration-200 group';
+                
+                // --- THE HTML STRUCTURE FOR A SINGLE ROW ---
+                row.innerHTML = `
+                    <!-- VISIBLE PART OF THE ROW -->
+                    <div class="flex items-center gap-2 p-3 select-none">
+                        
+                        <!-- TRACK INFO AREA (DEDICATED CLICK TARGET FOR DETAILS) -->
+                        <div class="flex items-center flex-1 min-w-0 cursor-pointer" onclick="window.toggleDetails('${uniqueId}')">
+                            <!-- TRACK NUMBER (WHITE TEXT) -->
+                            <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded-md shadow-inner">
+                                ${num}
+                            </div>
+
+                            <!-- TRACK TITLE & ARTIST (MOBILE VIEW) -->
+                            <div class="flex-1 px-2 min-w-0 flex flex-col justify-center">
+                                <div class="text-slate-100 font-medium truncate text-base">${title}</div>
+                                <!-- ARTIST SHOWS HERE ONLY ON MOBILE -->
+                                <div class="text-xs text-slate-400 truncate sm:hidden">${artist}</div>
+                            </div>
+
+                            <!-- ARTIST COLUMN (DESKTOP VIEW ONLY) -->
+                            <div class="hidden sm:block flex-1 px-2 text-slate-400 truncate">
+                                ${artist}
+                            </div>
+                        </div>
+
+                        <!-- ACTIONS: FAVORITE (HEART) - The w-10 container uses 'justify-center' for center alignment. -->
+                        <div class="w-10 flex justify-center items-center shrink-0">
+                            
+                            <!-- 1. FAVORITE BUTTON (HEART) -->
+                            <button 
+                                id="btn-${uniqueId}" 
+                                onclick="window.toggleFavorite('${num}', event)"
+                                class="w-8 h-8 rounded-full bg-slate-700/50 hover:bg-slate-700 flex items-center justify-center transition-all duration-200"
+                                title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}"
+                            >
+                                <i class="${favIconClass} text-xl transition-colors"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- HIDDEN DETAILS (EXPANDS WHEN CLICKED) -->
+                    <div id="${uniqueId}" class="hidden bg-slate-900/90 border-t border-slate-700/50 text-sm">
+                        <div class="p-4 grid gap-3">
+                            
+                            <!-- EXTRA INFO: YEAR AND ALBUM -->
+                            <div class="flex flex-wrap gap-4 text-slate-400">
+                                ${year ? `<div class="flex items-center gap-2"><i class="fa-regular fa-calendar text-green-500"></i> ${year}</div>` : ''}
+                                ${album ? `<div class="flex items-center gap-2"><i class="fa-solid fa-compact-disc text-green-500"></i> ${album}</div>` : ''}
+                            </div>
+
+                            <!-- BUTTONS: SPOTIFY AND YOUTUBE -->
+                            <div class="flex gap-3 mt-4">
+                                <!-- SPOTIFY BUTTON LOGIC -->
+                                ${spotify && spotify.trim() !== '' ? `
+                                    <a href="${spotify}" target="_blank" class="flex-1 bg-[#1DB954] hover:bg-[#1ed760] text-white py-3 px-4 rounded-lg text-center font-semibold transition flex items-center justify-center gap-2 shadow-xl shadow-green-900/30">
+                                        <i class="fa-brands fa-spotify text-xl"></i> Spotify
+                                    </a>
+                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-3 px-4 rounded-lg text-center cursor-not-allowed flex items-center justify-center gap-2">No Spotify Link</span>'}
+                                
+                                <!-- YOUTUBE BUTTON LOGIC -->
+                                ${youtube && youtube.trim() !== '' ? `
+                                    <a href="${youtube}" target="_blank" class="flex-1 bg-[#FF0000] hover:bg-[#ff3333] text-white py-3 px-4 rounded-lg text-center font-semibold transition flex items-center justify-center gap-2 shadow-xl shadow-red-900/30">
+                                        <i class="fa-brands fa-youtube text-xl"></i> YouTube
+                                    </a>
+                                ` : '<span class="flex-1 bg-slate-700 text-slate-500 py-3 px-4 rounded-lg text-center cursor-not-allowed flex items-center justify-center gap-2">No YouTube Link</span>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                trackListElement.appendChild(row);
+            });
+        }
+
+        // --- CLICK HANDLER: OPENS AND CLOSES THE ROW ---
+        window.toggleDetails = function(id) {
+            const detailsPanel = document.getElementById(id);
+            
+            if (detailsPanel.classList.contains('hidden')) {
+                // OPEN THE ROW
+                detailsPanel.classList.remove('hidden');
+            } else {
+                // CLOSE THE ROW
+                detailsPanel.classList.add('hidden');
+            }
+        };
+
+        // --- SEARCH HANDLER: LISTENS FOR TYPING ---
+        searchInput.addEventListener('input', (e) => {
+            if (!isTracksLoaded) return; // Prevent search on incomplete data
+            const tracksToRender = filterAndSearchTracks(e.target.value, allTracks, currentView, favoriteTrackNos);
+            renderTracks(tracksToRender);
+        });
+
+        // START THE APP
+        function init() {
+            // 1. Start Firebase initialization (async)
+            initializeFirebase();
+            
+            // 2. Load CSV data (async)
+            try {
+                Papa.parse('tracks.csv', {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        console.log("CSV Loaded successfully");
+                        processData(results.data);
+                    },
+                    error: function(err) {
+                        console.warn("Could not load tracks.csv. Using fallback data.");
+                        useFallbackData();
+                    }
+                });
+            } catch (error) {
+                console.warn("Caught synchronous error loading CSV. Using fallback data.");
+                useFallbackData();
+            }
+        }
+        init();
+
+    </script>
 </body>
 </html>
-
