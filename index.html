@@ -19,6 +19,15 @@
             padding: 0 15px;
         }
 
+        /* Set a minimal width for the first column (No.) */
+        #tracksTable th:nth-child(1),
+        #tracksTable td:nth-child(1) {
+            width: 70px !important; 
+            max-width: 70px !important;
+            white-space: nowrap; 
+            text-align: center;
+        }
+
         /* Styles to Center the Search/Filter Box */
         .dataTables_filter {
             width: 100%;
@@ -38,7 +47,7 @@
             border: 1px solid #ccc;
             padding: 6px 12px;
         }
-        
+
         /* Custom style for Jukebox title */
         h1.title {
             text-align: center;
@@ -78,13 +87,13 @@
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
             <tr>
-                <th>Disc & Track</th> 
+                <th>No.</th> 
                 <th>Track Name</th>
                 <th>Artist</th>
                 <th>Year Released</th>
-                <th>Album Name</th>
-                <th>Spotify Link</th>
-                <th>Youtube Link</th>
+                <th>Album</th>
+                <th>Spotify</th>
+                <th>YouTube</th>
             </tr>
         </thead>
         <tbody>
@@ -114,18 +123,21 @@ $(document).ready(function() {
                 
                 // Define the columns and data mapping
                 columns: [
-                    // Set explicit widths for the three key columns
-                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" },
+                    // ⚠️ CRITICAL: Data keys must exactly match your new CSV headers,
+                    // including the hidden BOM character (﻿) and the colons (:).
+                    { data: '﻿No.', title: 'No.', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Hidden data columns
+                    // Year Released remains unchanged
                     { data: 'Year Released', title: 'Year Released' },
-                    { data: 'Album Name', title: 'Album Name' },
                     
-                    // Render Spotify Link
+                    // Album has a colon now
+                    { data: 'Album:', title: 'Album' },
+                    
+                    // Render Spotify Link (with colon)
                     { 
-                        data: 'Spotify Link', 
+                        data: 'Spotify Link:', 
                         title: 'Spotify',
                         render: function(data, type, row) {
                             if (data) {
@@ -135,9 +147,9 @@ $(document).ready(function() {
                         }
                     },
                     
-                    // Render YouTube Link
+                    // Render YouTube Link (with colon)
                     { 
-                        data: 'Youtube Link', 
+                        data: 'Youtube Link:', 
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
@@ -148,14 +160,13 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // 3. Enable Responsive extension AND restore the modal detail view
+                // 3. Enable Responsive extension and custom modal detail view
                 responsive: {
                     details: {
-                        // Display details in a modal/popup 
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                // This provides the custom header for the detail view
+                                // Note: Using the clean titles for the modal header
                                 return 'Details for '+data['Track Name']+' by '+data['Artist'];
                             }
                         } ),
@@ -170,7 +181,7 @@ $(document).ready(function() {
                     // Highest Priority (Last to hide): Track Name (1) & Artist (2)
                     { responsivePriority: 1, targets: [1, 2] }, 
                     
-                    // Second Priority: Disc & Track (0) 
+                    // Second Priority: No. (0) 
                     { responsivePriority: 2, targets: 0 }, 
                     
                     // Lowest Priority: Push all other columns into the '+' button.
@@ -187,10 +198,10 @@ $(document).ready(function() {
                 info: true,
                 searching: true,
                 
-                // 🛠️ FIX 3: Restore Search Placeholder
+                // Restore Search Placeholder
                 language: {
-                    search: "Search:", // Keep the label visible
-                    searchPlaceholder: "Search for Artist or Track Name" // The placeholder text
+                    search: "Search:", 
+                    searchPlaceholder: "Search for Artist or Track Name"
                 }
             });
         }
