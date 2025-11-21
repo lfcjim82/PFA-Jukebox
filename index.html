@@ -1,102 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PFA Jukebox Tracks</title>
-    
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        /* Styles to Center the Search/Filter Box (lfrtip data structure) */
-        .dataTables_filter {
-            width: 100%;
-            text-align: center; /* Center the label/input container */
-            margin-bottom: 15px; /* Add space below the filter */
-        }
-        .dataTables_filter label {
-            width: 100%;
-            display: flex; /* Use flex to control alignment */
-            justify-content: center; /* Center the elements horizontally */
-            align-items: center;
-        }
-        .dataTables_filter input {
-            /* Adjust input width for better appearance */
-            margin-left: 5px;
-            max-width: 250px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            padding: 6px 12px;
-        }
-
-        /* Custom style for Jukebox title */
-        h1.title {
-            text-align: center;
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        /* Styling the Link Buttons */
-        .link-button {
-            display: inline-block;
-            padding: 4px 8px;
-            margin: 2px 0;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 0.9em;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .spotify-link {
-            background-color: #1DB954; /* Spotify green */
-            color: white;
-            border: 1px solid #1DB954;
-        }
-        .youtube-link {
-            background-color: #FF0000; /* YouTube red */
-            color: white;
-            border: 1px solid #FF0000;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
-
-    <table id="tracksTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                <th>Disc & Track</th> 
-                <th>Track Name</th>
-                <th>Artist</th>
-                <th>Category</th>
-                <th>Notes</th>
-                <th>Spotify Link</th>
-                <th>YouTube Link</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
-</div>
-
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
 <script>
 $(document).ready(function() {
     
@@ -107,7 +8,6 @@ $(document).ready(function() {
         skipEmptyLines: true, // Ignore any blank rows
         complete: function(results) {
             
-            // The data is now ready in JSON format (results.data)
             var csvData = results.data;
             
             // 2. Initialize DataTables with the processed data
@@ -119,8 +19,10 @@ $(document).ready(function() {
                     { data: 'Disc & Track', title: 'Disc & Track' },
                     { data: 'Track Name', title: 'Track Name' },
                     { data: 'Artist', title: 'Artist' },
-                    { data: 'Category', title: 'Category' },
-                    { data: 'Notes', title: 'Notes' },
+                    
+                    // ⬇️ UPDATED: Using the actual CSV Header Names for data and title 
+                    { data: 'Year Released', title: 'Year Released' },
+                    { data: 'Album Name', title: 'Album Name' },
                     
                     // Render Spotify Link
                     { 
@@ -136,7 +38,7 @@ $(document).ready(function() {
                     
                     // Render YouTube Link
                     { 
-                        data: 'YouTube Link', 
+                        data: 'Youtube Link', // Must match the CSV header exactly
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
@@ -150,7 +52,6 @@ $(document).ready(function() {
                 // 3. Enable the Responsive extension (Green + button functionality)
                 responsive: {
                     details: {
-                        // Display details in a modal/popup for cleanliness
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
@@ -165,18 +66,16 @@ $(document).ready(function() {
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // Ensure these three core columns are the last to hide
+                    // Visible: Disc & Track, Track Name, Artist
                     { responsivePriority: 1, targets: [0, 1] }, 
                     { responsivePriority: 2, targets: 2 },     
                     
-                    // Hide Category, Notes, Spotify Link, and YouTube Link initially
+                    // Hidden: Year Released, Album Name, Spotify Link, and YouTube Link 
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
-                // 5. Use 'lfrtip' to control the layout and ensure search is styled/centered
-                dom: 'lfrtip', 
-                
                 // General table appearance options
+                dom: 'lfrtip', 
                 paging: true,
                 ordering: true,
                 info: true,
@@ -186,6 +85,3 @@ $(document).ready(function() {
     });
 });
 </script>
-
-</body>
-</html>
