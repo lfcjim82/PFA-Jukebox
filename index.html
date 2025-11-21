@@ -1,109 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PFA Jukebox Tracks</title>
-    
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        /* Styles to Center the Search/Filter Box */
-        .dataTables_filter {
-            width: 100%;
-            text-align: center; 
-            margin-bottom: 15px; 
-        }
-        .dataTables_filter label {
-            width: 100%;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-        }
-        .dataTables_filter input {
-            margin-left: 5px;
-            max-width: 250px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            padding: 6px 12px;
-        }
-
-        /* Custom style for Jukebox title */
-        h1.title {
-            text-align: center;
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        /* Styling the Link Buttons */
-        .link-button {
-            display: inline-block;
-            padding: 4px 8px;
-            margin: 2px 0;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 0.9em;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .spotify-link {
-            background-color: #1DB954; /* Spotify green */
-            color: white;
-            border: 1px solid #1DB954;
-        }
-        .youtube-link {
-            background-color: #FF0000; /* YouTube red */
-            color: white;
-            border: 1px solid #FF0000;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
-
-    <table id="tracksTable" class="display nowrap" style="width:100%">
-        <thead>
-            <tr>
-                <th>Disc & Track</th> 
-                <th>Track Name</th>
-                <th>Artist</th>
-                <th>Year Released</th>
-                <th>Album Name</th>
-                <th>Spotify Link</th>
-                <th>Youtube Link</th>
-            </tr>
-        </thead>
-        <tbody>
-            </tbody>
-    </table>
-</div>
-
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
 <script>
 $(document).ready(function() {
     
     // 1. Use PapaParse to fetch and parse the CSV file
     Papa.parse('tracks.csv', {
-        download: true,       // Fetch the file from the URL
-        header: true,         // Treat the first row as column headers
-        skipEmptyLines: true, // Ignore any blank rows
+        download: true,       
+        header: true,         
+        skipEmptyLines: true, 
         complete: function(results) {
             
             var csvData = results.data;
@@ -118,7 +20,7 @@ $(document).ready(function() {
                     { data: 'Track Name', title: 'Track Name' },
                     { data: 'Artist', title: 'Artist' },
                     
-                    // Using the exact CSV Header Names for data and title 
+                    // Hidden data columns
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
@@ -136,7 +38,7 @@ $(document).ready(function() {
                     
                     // Render YouTube Link
                     { 
-                        data: 'Youtube Link', // Must match the CSV header exactly (Youtube Link)
+                        data: 'Youtube Link', 
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
@@ -148,20 +50,8 @@ $(document).ready(function() {
                 ],
                 
                 // 3. Enable the Responsive extension (Green + button functionality)
-                responsive: {
-                    details: {
-                        // Display details in a modal/popup for cleanliness
-                        display: $.fn.dataTable.Responsive.display.modal( {
-                            header: function ( row ) {
-                                var data = row.data();
-                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
-                            }
-                        } ),
-                        renderer: $.fn.dataTable.Responsive.renderer.tableAll({
-                            tableClass: 'table'
-                        })
-                    }
-                },
+                // This property must be set to true for the responsive logic to run
+                responsive: true, 
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
@@ -184,6 +74,3 @@ $(document).ready(function() {
     });
 });
 </script>
-
-</body>
-</html>
