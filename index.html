@@ -73,7 +73,7 @@
 <body>
 
 <div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
+    <h1 class="title">🎵 PFA Jukebox Tracks 🎵</h1>
 
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
@@ -104,6 +104,10 @@ $(document).ready(function() {
         download: true,       
         header: true,         
         skipEmptyLines: true, 
+        // This function removes the "Byte Order Mark" (BOM) if your Excel/CSV save added it
+        beforeFirstChunk: function(chunk) {
+            return chunk.charCodeAt(0) === 0xFEFF ? chunk.slice(1) : chunk;
+        },
         complete: function(results) {
             
             var csvData = results.data;
@@ -114,18 +118,18 @@ $(document).ready(function() {
                 
                 // Define the columns and data mapping
                 columns: [
-                    // Set explicit widths for the three key columns
-                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" },
+                    // Mapping "No." from CSV to the "Disc & Track" column
+                    { data: 'No.', title: 'Disc & Track', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Hidden data columns
+                    // Hidden data columns (Mapped to your new specific headers)
                     { data: 'Year Released', title: 'Year Released' },
-                    { data: 'Album Name', title: 'Album Name' },
+                    { data: 'Album:', title: 'Album Name' },
                     
-                    // Render Spotify Link
+                    // Render Spotify Link (Mapped to "Spotify Link:")
                     { 
-                        data: 'Spotify Link', 
+                        data: 'Spotify Link:', 
                         title: 'Spotify',
                         render: function(data, type, row) {
                             if (data) {
@@ -135,9 +139,9 @@ $(document).ready(function() {
                         }
                     },
                     
-                    // Render YouTube Link
+                    // Render YouTube Link (Mapped to "Youtube Link:")
                     { 
-                        data: 'Youtube Link', 
+                        data: 'Youtube Link:', 
                         title: 'YouTube',
                         render: function(data, type, row) {
                             if (data) {
