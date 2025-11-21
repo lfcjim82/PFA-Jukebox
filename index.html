@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PFA Jukebox Tracks</title>
+    
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Styles to Center the Search/Filter Box */
+        .dataTables_filter {
+            width: 100%;
+            text-align: center; /* Center the label/input container */
+            margin-bottom: 15px; /* Add space below the filter */
+        }
+        .dataTables_filter label {
+            width: 100%;
+            display: flex; /* Use flex to control alignment */
+            justify-content: center; /* Center the elements horizontally */
+            align-items: center;
+        }
+        .dataTables_filter input {
+            /* Adjust input width for better appearance */
+            margin-left: 5px;
+            max-width: 250px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+        }
+
+        /* Custom style for Jukebox title */
+        h1.title {
+            text-align: center;
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Styling the Link Buttons (optional, makes them look nicer) */
+        .link-button {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .spotify-link {
+            background-color: #1DB954; /* Spotify green */
+            color: white;
+            border: 1px solid #1DB954;
+        }
+        .youtube-link {
+            background-color: #FF0000; /* YouTube red */
+            color: white;
+            border: 1px solid #FF0000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
+
+    <table id="tracksTable" class="display nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Disc & Track</th> 
+                <th>Track Name</th>
+                <th>Artist</th>
+                <th>Category</th>
+                <th>Notes</th>
+                <th>Spotify Link</th>
+                <th>YouTube Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+</div>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#tracksTable').DataTable({
+        // 1. Load data directly from tracks.csv file
+        ajax: {
+            url: 'tracks.csv',
+            dataSrc: '', // Tell DataTables to expect a clean array of objects
+        },
+        
+        // 2. Define the columns and data mapping
+        columns: [
+            { data: 'Disc & Track', title: 'Disc & Track' },
+            { data: 'Track Name', title: 'Track Name' },
+            { data: 'Artist', title: 'Artist' },
+            { data: 'Category', title: 'Category' },
+            { data: 'Notes', title: 'Notes' },
+            
+            // 3. Render Spotify Link as a button/link
+            { 
+                data: 'Spotify Link', 
+                title: 'Spotify',
+                render: function(data, type, row) {
+                    if (data) {
+                        return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
+                    }
+                    return '';
+                }
+            },
+            
+            // 4. Render YouTube Link as a button/link (New)
+            { 
+                data: 'YouTube Link', 
+                title: 'YouTube',
+                render: function(data, type, row) {
+                    if (data) {
+                        return '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>';
+                    }
+                    return '';
+                }
+            }
+        ],
+        
+        // 5. Enable the Responsive extension
+        responsive: {
+            details: {
+                // This ensures the green + button is used
+                display: $.fn.dataTable.Responsive.display.modal( {
+                    header: function ( row ) {
+                        var data = row.data();
+                        return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                    }
+                } ),
+                renderer: $.fn.dataTable.Responsive.renderer.tableAll({
+                    tableClass: 'table'
+                })
+            }
+        },
+
+        // 6. Define which columns are visible and which are hidden on initial load
+        columnDefs: [
+            // These are the three main columns you want visible on every device
+            { responsivePriority: 1, targets: [0, 1] }, // Disc & Track, Track Name
+            { responsivePriority: 2, targets: 2 },     // Artist
+            
+            // These columns are hidden by default and appear in the green + button
+            // Targets are based on the column index (0-based)
+            { visible: false, targets: [3, 4, 5, 6] } 
+            
+            // Note: DataTables Responsive automatically makes columns visible if needed, 
+            // but setting visible: false here forces them into the details view first.
+        ],
+        
+        // 7. General table appearance options
+        paging: true,
+        ordering: true,
+        info: true,
+        searching: true,
+        
+        // Use the new DataTables styling wrapper
+        dom: 'lfrtip' 
+        
+    });
+});
+</script>
+
+</body>
+</html>
