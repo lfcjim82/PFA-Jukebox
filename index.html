@@ -19,14 +19,10 @@
             padding: 0 15px;
         }
 
-        /* 🛠️ FIX 1: Force Disc & Track Column Width */
-        #tracksTable th:nth-child(1),
-        #tracksTable td:nth-child(1) {
-            /* Set a minimal width just enough for the code (XX-XX) and the green plus icon */
-            width: 70px !important; 
-            max-width: 70px !important;
-            white-space: nowrap; /* Prevent the code from wrapping */
-            text-align: center;
+        /* 🛠️ NEW: Reduce header text size for compactness */
+        #tracksTable th {
+            font-size: 0.9em; 
+            padding: 8px 5px; 
         }
 
         /* Styles to Center the Search/Filter Box */
@@ -124,11 +120,12 @@ $(document).ready(function() {
                 
                 // Define the columns and data mapping
                 columns: [
-                    { data: 'Disc & Track', title: 'Disc & Track' },
-                    { data: 'Track Name', title: 'Track Name' },
-                    { data: 'Artist', title: 'Artist' },
+                    // Set explicit widths for the three key columns
+                    { data: 'Disc & Track', title: 'Disc & Track', width: "70px" }, // Smallest fixed width
+                    { data: 'Track Name', title: 'Track Name', width: "55%" },     // Uses majority of space
+                    { data: 'Artist', title: 'Artist', width: "30%" },             // Uses remaining space
                     
-                    // Hidden data columns
+                    // Hidden data columns (Widths don't matter as they are hidden)
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album Name', title: 'Album Name' },
                     
@@ -162,11 +159,11 @@ $(document).ready(function() {
 
                 // 4. Define which columns are visible and which are hidden
                 columnDefs: [
-                    // 🏆 Highest Priority (Last to hide): Track Name (1) & Artist (2)
-                    { responsivePriority: 1, targets: [1, 2] }, 
+                    // 🏆 Highest Priority (Last to hide): Disc & Track (0)
+                    { responsivePriority: 1, targets: 0 }, 
                     
-                    // 🥈 Second Priority: Disc & Track (0) - Should stay visible but has a smaller width
-                    { responsivePriority: 2, targets: 0 }, 
+                    // 🥈 Second Priority: Track Name (1) & Artist (2)
+                    { responsivePriority: 2, targets: [1, 2] }, 
                     
                     // 🥉 Lowest Priority: Push all other columns into the '+' button.
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
