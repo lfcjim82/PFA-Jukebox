@@ -126,6 +126,7 @@
 
     <!-- ================================================================================== -->
     <!-- COLUMN HEADERS ROW (NO, TRACK NAME, ARTIST, ACTIONS)                               -->
+    <!-- 'w-10' is used for the Actions column to accommodate just the single heart icon.     -->
     <!-- ================================================================================== -->
     <div class="bg-slate-800/80 border-b border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-10 shadow-inner">
         <div class="max-w-3xl mx-auto px-2 py-2 flex items-center gap-2">
@@ -138,8 +139,8 @@
             <!-- 'ARTIST' HEADER (HIDDEN ON MOBILE PHONES 'hidden', VISIBLE ON TABLETS/PC 'sm:block') -->
             <div class="hidden sm:block flex-1 px-2">Artist</div>
             
-            <!-- ACTIONS HEADER (PLUS & HEART) -->
-            <div class="w-20 text-right shrink-0">Actions</div>
+            <!-- ACTIONS HEADER (HEART ONLY) -->
+            <div class="w-10 text-right shrink-0">Fav</div>
         </div>
     </div>
 
@@ -281,23 +282,6 @@
 
         // --- APP LOGIC ---
         
-        // Placeholder function for the queue/add button
-        window.addToQueue = function(trackNo, event) {
-            // Prevent the parent row from expanding/collapsing when clicking the button
-            event.stopPropagation(); 
-            
-            // In a full application, this would add the track to a global queue list.
-            console.log(`Track ${trackNo} added to queue! (Placeholder function)`);
-            
-            // OPTIONAL: Add a quick visual feedback effect
-            const button = event.currentTarget;
-            button.classList.add('animate-pulse', 'ring-2', 'ring-green-400');
-            setTimeout(() => {
-                button.classList.remove('animate-pulse', 'ring-2', 'ring-green-400');
-            }, 500);
-        };
-
-
         // Toggles a track's favorite status and saves it
         window.toggleFavorite = function(trackNo, event) {
             // Prevent the parent row from expanding/collapsing when clicking the heart
@@ -445,7 +429,7 @@
                     <!-- VISIBLE PART OF THE ROW -->
                     <div class="flex items-center gap-2 p-3 select-none">
                         
-                        <!-- TRACK INFO AREA (NEW DEDICATED CLICK TARGET FOR DETAILS) -->
+                        <!-- TRACK INFO AREA (DEDICATED CLICK TARGET FOR DETAILS) -->
                         <div class="flex items-center flex-1 min-w-0 cursor-pointer" onclick="window.toggleDetails('${uniqueId}')">
                             <!-- TRACK NUMBER (WHITE TEXT) -->
                             <div class="w-14 text-center font-mono font-bold text-white shrink-0 text-sm bg-slate-900/50 py-1 rounded-md shadow-inner">
@@ -465,18 +449,10 @@
                             </div>
                         </div>
 
-                        <!-- ACTIONS: QUEUE (+) AND FAVORITE (HEART) - THESE BUTTONS DO NOT OPEN DETAILS -->
-                        <div class="w-20 flex justify-end items-center gap-1 shrink-0">
-                            <!-- 1. QUEUE/ADD BUTTON (+) -->
-                            <button 
-                                onclick="window.addToQueue('${num}', event)"
-                                class="w-8 h-8 rounded-full bg-green-600/70 hover:bg-green-600 text-white flex items-center justify-center transition-all duration-200"
-                                title="Add to Queue"
-                            >
-                                <i class="fa-solid fa-plus text-lg"></i>
-                            </button>
+                        <!-- ACTIONS: FAVORITE (HEART) - The column is now 'w-10' to fit just the heart button. -->
+                        <div class="w-10 flex justify-end items-center shrink-0">
                             
-                            <!-- 2. FAVORITE BUTTON (HEART) -->
+                            <!-- 1. FAVORITE BUTTON (HEART) -->
                             <button 
                                 id="btn-${uniqueId}" 
                                 onclick="window.toggleFavorite('${num}', event)"
@@ -525,7 +501,6 @@
         // --- CLICK HANDLER: OPENS AND CLOSES THE ROW ---
         window.toggleDetails = function(id) {
             const detailsPanel = document.getElementById(id);
-            // Note: The heart button is no longer the toggle button.
             
             if (detailsPanel.classList.contains('hidden')) {
                 // OPEN THE ROW
