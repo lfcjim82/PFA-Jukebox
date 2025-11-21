@@ -33,7 +33,7 @@
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
             <tr>
-                <th>Disc & Track</th> 
+                <th>No.</th> 
                 <th>Track Name</th>
                 <th>Artist</th>
                 <th>Year Released</th>
@@ -56,33 +56,25 @@ $(document).ready(function() {
     
     Papa.parse('tracks.csv', {
         download: true,       
-        header: false, // 🛑 CHANGED TO FALSE: We will use column numbers, not names.
+        header: false, // Using column numbers to prevent errors
         skipEmptyLines: true, 
         
         complete: function(results) {
-            // Remove the first row (which contains the headers like "No.", "Track Name" etc.)
-            // slice(1) creates a new list starting from the second row (index 1)
+            // Remove the first row (headers)
             var csvData = results.data.slice(1);
             
             $('#tracksTable').DataTable({
                 data: csvData, 
                 
-                // Define the columns using NUMBERS (Index) instead of Names
-                // 0 = First Column in CSV, 1 = Second Column, etc.
+                // Define the columns using NUMBERS (Index)
                 columns: [
-                    // Column 0: No. (Disc & Track)
-                    { data: 0, title: 'Disc & Track', width: "70px" },
-                    
-                    // Column 1: Track Name
+                    // ⬇️ UPDATED: Title changed to 'No.'
+                    { data: 0, title: 'No.', width: "70px" },
                     { data: 1, title: 'Track Name', width: "55%" },
-                    
-                    // Column 2: Artist
                     { data: 2, title: 'Artist', width: "30%" },
                     
-                    // Column 3: Year Released
+                    // Hidden data columns
                     { data: 3, title: 'Year Released' },
-                    
-                    // Column 4: Album
                     { data: 4, title: 'Album Name' },
                     
                     // Column 5: Spotify Link
@@ -104,13 +96,11 @@ $(document).ready(function() {
                     }
                 ],
                 
-                // Configuration for the green + button
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                // data[1] is Track Name, data[2] is Artist
                                 return 'Details for '+data[1]+' by '+data[2];
                             }
                         } ),
@@ -120,12 +110,11 @@ $(document).ready(function() {
                     }
                 },
                 
-                // Priority settings for Mobile
                 columnDefs: [
-                    { responsivePriority: 1, targets: [1, 2] }, // Keep Track (1) & Artist (2) visible longest
-                    { responsivePriority: 2, targets: 0 },      // Then Disc (0)
-                    { responsivePriority: 100, targets: [3, 4, 5, 6] }, // Hide everything else first
-                    { visible: false, targets: [3, 4, 5, 6] }   // Hide extra info by default
+                    { responsivePriority: 1, targets: [1, 2] }, // Track Name & Artist
+                    { responsivePriority: 2, targets: 0 },      // No.
+                    { responsivePriority: 100, targets: [3, 4, 5, 6] }, 
+                    { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
                 dom: 'lfrtip', 
@@ -135,7 +124,7 @@ $(document).ready(function() {
                 searching: true,
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "Search for Artist or Track Name" 
+                    searchPlaceholder: "Search for track or artist" 
                 }
             });
         }
