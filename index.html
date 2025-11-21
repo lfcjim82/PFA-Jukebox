@@ -8,66 +8,27 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
     
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-        .dataTables_filter {
-            width: 100%;
-            text-align: center; 
-            margin-bottom: 15px; 
-        }
-        .dataTables_filter label {
-            width: 100%;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-        }
-        .dataTables_filter input {
-            margin-left: 5px;
-            max-width: 250px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            padding: 6px 12px;
-        }
-        h1.title {
-            text-align: center;
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .link-button {
-            display: inline-block;
-            padding: 4px 8px;
-            margin: 2px 0;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 0.9em;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .spotify-link {
-            background-color: #1DB954; 
-            color: white;
-            border: 1px solid #1DB954;
-        }
-        .youtube-link {
-            background-color: #FF0000; 
-            color: white;
-            border: 1px solid #FF0000;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+        
+        /* Search Bar Styling */
+        .dataTables_filter { width: 100%; text-align: center; margin-bottom: 15px; }
+        .dataTables_filter label { width: 100%; display: flex; justify-content: center; align-items: center; }
+        .dataTables_filter input { margin-left: 5px; max-width: 250px; border-radius: 4px; border: 1px solid #ccc; padding: 6px 12px; }
+        
+        /* Title Styling */
+        h1.title { text-align: center; font-size: 1.8em; color: #333; margin-bottom: 20px; }
+        
+        /* Link Buttons */
+        .link-button { display: inline-block; padding: 4px 8px; margin: 2px 0; border-radius: 5px; text-decoration: none; font-size: 0.9em; text-align: center; white-space: nowrap; }
+        .spotify-link { background-color: #1DB954; color: white; border: 1px solid #1DB954; }
+        .youtube-link { background-color: #FF0000; color: white; border: 1px solid #FF0000; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 class="title">🎵 PFA Jukebox Tracks</h1>
+    <h1 class="title">🎵 PFA Jukebox Tracks 🎵</h1>
 
     <table id="tracksTable" class="display nowrap" style="width:100%">
         <thead>
@@ -98,10 +59,15 @@ $(document).ready(function() {
         header: true,         
         skipEmptyLines: true, 
         
-        // 🛠️ CRITICAL FIX: This cleans every header name before it's used
-        transformHeader: function(header) {
-            // Removes the invisible BOM character and any extra whitespace
-            return header.replace(/^\ufeff/, '').trim();
+        // 🛠️ THE FIX IS HERE: Force the first column to be named "No."
+        transformHeader: function(header, index) {
+            // If it's the very first column (index 0), rename it to "No."
+            // This ignores any invisible characters or BOMs completely.
+            if (index === 0) {
+                return "No.";
+            }
+            // For all other columns, just trim whitespace
+            return header.trim();
         },
         
         complete: function(results) {
@@ -109,15 +75,13 @@ $(document).ready(function() {
             
             $('#tracksTable').DataTable({
                 data: csvData, 
-                
-                // Define the columns
                 columns: [
-                    // Map cleaned 'No.' to the 'Disc & Track' column
+                    // Now we are 100% sure the key is 'No.'
                     { data: 'No.', title: 'Disc & Track', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Hidden columns mapped to your new headers (Year Released, Album:, etc.)
+                    // Data Columns based on your headers
                     { data: 'Year Released', title: 'Year Released' },
                     { data: 'Album:', title: 'Album Name' },
                     
@@ -125,26 +89,18 @@ $(document).ready(function() {
                     { 
                         data: 'Spotify Link:', 
                         title: 'Spotify',
-                        render: function(data, type, row) {
-                            if (data) {
-                                return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
-                            }
-                            return '';
+                        render: function(data) {
+                            return data ? '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>' : '';
                         }
                     },
                     { 
                         data: 'Youtube Link:', 
                         title: 'YouTube',
-                        render: function(data, type, row) {
-                            if (data) {
-                                return '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>';
-                            }
-                            return '';
+                        render: function(data) {
+                            return data ? '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>' : '';
                         }
                     }
                 ],
-                
-                // Options
                 responsive: {
                     details: {
                         display: $.fn.dataTable.Responsive.display.modal( {
@@ -159,19 +115,19 @@ $(document).ready(function() {
                     }
                 },
                 columnDefs: [
-                    { responsivePriority: 1, targets: [1, 2] }, // Track Name, Artist
-                    { responsivePriority: 2, targets: 0 },       // No.
+                    { responsivePriority: 1, targets: [1, 2] },
+                    { responsivePriority: 2, targets: 0 },
                     { responsivePriority: 100, targets: [3, 4, 5, 6] },
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 dom: 'lfrtip', 
-                paging: true,
-                ordering: true,
-                info: true,
+                paging: true, 
+                ordering: true, 
+                info: true, 
                 searching: true,
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "Search for track or artist" 
+                    searchPlaceholder: "Search for Artist or Track Name" 
                 }
             });
         }
