@@ -80,25 +80,25 @@
             <!-- TITLE BAR & FAVORITES BUTTON -->
             <div class="flex flex-col mb-4">
                 <div class="flex justify-between items-center w-full">
-                    <!-- MAIN TITLE TEXT -->
-                    <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-3">
+                    <!-- MAIN TITLE TEXT (Reduced gap and icon size) -->
+                    <h1 class="text-2xl font-bold text-green-400 tracking-wider flex items-center gap-1">
                         
-                        <!-- LEFT MUSICAL NOTE ICON -->
-                        <i class="fa-solid fa-music"></i> 
+                        <!-- LEFT MUSICAL NOTE ICON (smaller text size) -->
+                        <i class="fa-solid fa-music text-xl"></i> 
                         
                         <!-- THE TITLE TEXT -->
                         PFA JUKEBOX 
                         
-                        <!-- RIGHT MUSICAL NOTE ICON -->
-                        <i class="fa-solid fa-music"></i>
+                        <!-- RIGHT MUSICAL NOTE ICON (smaller text size) -->
+                        <i class="fa-solid fa-music text-xl"></i>
                     </h1>
 
                     <!-- LOADING INDICATOR & FAVORITES BUTTON CONTAINER -->
                     <div class="flex items-center gap-4">
-                        <!-- NEW FAVORITES/VIEW MODE BUTTON -->
+                        <!-- NEW FAVORITES/VIEW MODE BUTTON (Reduced padding) -->
                         <button id="view-mode-button" 
                                 onclick="switchView()"
-                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full text-xs shadow-md transition duration-150 ease-in-out whitespace-nowrap">
+                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded-full text-xs shadow-md transition duration-150 ease-in-out whitespace-nowrap">
                             <i class="fa-solid fa-heart mr-2"></i> View Favourites (0)
                         </button>
                         
