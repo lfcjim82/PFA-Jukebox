@@ -19,7 +19,7 @@
             padding: 0 15px;
         }
 
-        /* Styles to Center the Search/Filter Box */
+        /* Styles to Center the Search/Filter Box (lfrtip data structure) */
         .dataTables_filter {
             width: 100%;
             text-align: center; /* Center the label/input container */
@@ -48,7 +48,7 @@
             margin-bottom: 20px;
         }
 
-        /* Styling the Link Buttons (optional, makes them look nicer) */
+        /* Styling the Link Buttons */
         .link-button {
             display: inline-block;
             padding: 4px 8px;
@@ -95,88 +95,94 @@
 
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
 $(document).ready(function() {
-    $('#tracksTable').DataTable({
-        // 1. Load data directly from tracks.csv file
-        ajax: {
-            url: 'tracks.csv',
-            dataSrc: '', // Tell DataTables to expect a clean array of objects
-        },
-        
-        // 2. Define the columns and data mapping
-        columns: [
-            { data: 'Disc & Track', title: 'Disc & Track' },
-            { data: 'Track Name', title: 'Track Name' },
-            { data: 'Artist', title: 'Artist' },
-            { data: 'Category', title: 'Category' },
-            { data: 'Notes', title: 'Notes' },
+    
+    // 1. Use PapaParse to fetch and parse the CSV file
+    Papa.parse('tracks.csv', {
+        download: true,       // Fetch the file from the URL
+        header: true,         // Treat the first row as column headers
+        skipEmptyLines: true, // Ignore any blank rows
+        complete: function(results) {
             
-            // 3. Render Spotify Link as a button/link
-            { 
-                data: 'Spotify Link', 
-                title: 'Spotify',
-                render: function(data, type, row) {
-                    if (data) {
-                        return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
-                    }
-                    return '';
-                }
-            },
+            // The data is now ready in JSON format (results.data)
+            var csvData = results.data;
             
-            // 4. Render YouTube Link as a button/link (New)
-            { 
-                data: 'YouTube Link', 
-                title: 'YouTube',
-                render: function(data, type, row) {
-                    if (data) {
-                        return '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>';
+            // 2. Initialize DataTables with the processed data
+            $('#tracksTable').DataTable({
+                data: csvData, // Use the parsed CSV data
+                
+                // Define the columns and data mapping
+                columns: [
+                    { data: 'Disc & Track', title: 'Disc & Track' },
+                    { data: 'Track Name', title: 'Track Name' },
+                    { data: 'Artist', title: 'Artist' },
+                    { data: 'Category', title: 'Category' },
+                    { data: 'Notes', title: 'Notes' },
+                    
+                    // Render Spotify Link
+                    { 
+                        data: 'Spotify Link', 
+                        title: 'Spotify',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
+                            }
+                            return '';
+                        }
+                    },
+                    
+                    // Render YouTube Link
+                    { 
+                        data: 'YouTube Link', 
+                        title: 'YouTube',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>';
+                            }
+                            return '';
+                        }
                     }
-                    return '';
-                }
-            }
-        ],
-        
-        // 5. Enable the Responsive extension
-        responsive: {
-            details: {
-                // This ensures the green + button is used
-                display: $.fn.dataTable.Responsive.display.modal( {
-                    header: function ( row ) {
-                        var data = row.data();
-                        return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                ],
+                
+                // 3. Enable the Responsive extension (Green + button functionality)
+                responsive: {
+                    details: {
+                        // Display details in a modal/popup for cleanliness
+                        display: $.fn.dataTable.Responsive.display.modal( {
+                            header: function ( row ) {
+                                var data = row.data();
+                                return 'Details for '+data['Track Name']+' by '+data['Artist'];
+                            }
+                        } ),
+                        renderer: $.fn.dataTable.Responsive.renderer.tableAll({
+                            tableClass: 'table'
+                        })
                     }
-                } ),
-                renderer: $.fn.dataTable.Responsive.renderer.tableAll({
-                    tableClass: 'table'
-                })
-            }
-        },
+                },
 
-        // 6. Define which columns are visible and which are hidden on initial load
-        columnDefs: [
-            // These are the three main columns you want visible on every device
-            { responsivePriority: 1, targets: [0, 1] }, // Disc & Track, Track Name
-            { responsivePriority: 2, targets: 2 },     // Artist
-            
-            // These columns are hidden by default and appear in the green + button
-            // Targets are based on the column index (0-based)
-            { visible: false, targets: [3, 4, 5, 6] } 
-            
-            // Note: DataTables Responsive automatically makes columns visible if needed, 
-            // but setting visible: false here forces them into the details view first.
-        ],
-        
-        // 7. General table appearance options
-        paging: true,
-        ordering: true,
-        info: true,
-        searching: true,
-        
-        // Use the new DataTables styling wrapper
-        dom: 'lfrtip' 
-        
+                // 4. Define which columns are visible and which are hidden
+                columnDefs: [
+                    // Ensure these three core columns are the last to hide
+                    { responsivePriority: 1, targets: [0, 1] }, 
+                    { responsivePriority: 2, targets: 2 },     
+                    
+                    // Hide Category, Notes, Spotify Link, and YouTube Link initially
+                    { visible: false, targets: [3, 4, 5, 6] } 
+                ],
+                
+                // 5. Use 'lfrtip' to control the layout and ensure search is styled/centered
+                dom: 'lfrtip', 
+                
+                // General table appearance options
+                paging: true,
+                ordering: true,
+                info: true,
+                searching: true
+            });
+        }
     });
 });
 </script>
