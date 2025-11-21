@@ -6,6 +6,11 @@
     GUIDE TO EDITING:
     1. TEXT IN GREY (LIKE THIS) ARE COMMENTS. THEY DO NOT AFFECT THE CODE.
     2. LOOK FOR THE SECTIONS IN CAPITAL LETTERS BELOW TO FIND WHAT YOU WANT TO CHANGE.
+    
+    *** IMPORTANT CHANGE ***
+    This version uses localStorage to save favorites directly in the browser. 
+    Favorites will be lost if you clear browser data or switch devices.
+    The Firebase imports and related code have been removed/commented out.
 -->
 <html lang="en">
 <head>
@@ -146,36 +151,25 @@
     </main>
 
     <!-- ================================================================================== -->
-    <!-- JAVASCRIPT LOGIC SECTION (NOW INCLUDES FIREBASE FOR PERSISTENCE)                   -->
+    <!-- JAVASCRIPT LOGIC SECTION (NOW USES localStorage FOR FAVORITES)                     -->
     <!-- ================================================================================== -->
-    <script type="module">
-        // --- FIREBASE IMPORTS ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // setLogLevel('Debug'); // Uncomment this line to see detailed Firebase logs
-
-        // --- GLOBAL VARIABLES (FROM ENVIRONMENT) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+    <script>
         // --- APP STATE VARIABLES ---
         let allTracks = []; 
         const trackListElement = document.getElementById('track-list');
         const searchInput = document.getElementById('search-input');
         
-        // Firebase / Firestore setup
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthReady = false;
-        let isTracksLoaded = false; // Flag to track when CSV data is ready
+        // Use a single key for localStorage
+        const FAVORITES_STORAGE_KEY = 'pfa_jukebox_favorites';
+
+        // favoriteTrackNos will store the set of track numbers (strings)
         let favoriteTrackNos = new Set();
         let currentView = 'all'; // 'all' or 'favorites'
+        
+        // Since we are using localStorage, the tracks are always 'ready' as soon as the CSV loads.
+        let isTracksLoaded = false; 
 
-        // --- FALLBACK DATA ---
+        // --- FALLBACK DATA (SAME AS BEFORE) ---
         const fallbackCSV = `No.,Track Name,Artist,Year Released,Album:,Spotify Link:,Youtube Link:
 00-01,Heroes,David Bowie,1977,Bowie the singles 1968-1993,https://open.spotify.com/search/Heroes%20David%20Bowie,https://www.youtube.com/results?search_query=Heroes%20David%20Bowie%20music%20video
 00-02,Beauty and the Beast,David Bowie,1978,Bowie the singles 1968-1993,https://open.spotify.com/search/Beauty%20and%20the%20Beast%20David%20Bowie,https://www.youtube.com/results?search_query=Beauty%20and%20the%20Beast%20David%20Bowie%20music%20video
@@ -183,102 +177,46 @@
 60-06,Back In Black,AC/DC,1980,Back in Black,https://open.spotify.com/search/Back%20In%20Black%20AC/DC,https://www.youtube.com/results?search_query=Back%20In%20Black%20AC/DC%20music%20video
 60-07,You Shook Me All Night Long,AC/DC,1980,Back in Black,https://open.spotify.com/search/You%20Shook%20Me%20All%20Night%20Long%20AC/DC,https://www.youtube.com/results?search_query=You%20Shook%20Me%20All%20Night%20Long%20AC/DC`;
 
-        // --- FIREBASE UTILITIES ---
+        // --- LOCAL STORAGE UTILITIES ---
         
-        // Defines the Firestore path for the user's favorites list
-        function getFavoritesDocRef() {
-            // Path: /artifacts/{appId}/users/{userId}/favourites/list
-            const path = `/artifacts/${appId}/users/${userId}/favourites`;
-            return doc(db, path, 'list');
-        }
-
-        // Loads and listens for real-time changes to the favorites list
+        // Loads favorites from localStorage when the app starts
         function loadFavorites() {
-            if (!db || !isAuthReady) return;
-
-            // Use onSnapshot to listen for real-time updates to the favorites document
-            onSnapshot(getFavoritesDocRef(), (docSnapshot) => {
-                if (docSnapshot.exists()) {
-                    const data = docSnapshot.data();
-                    // Ensure data.trackNos is an array before setting the Set
-                    const trackArray = Array.isArray(data.trackNos) ? data.trackNos : [];
+            try {
+                const storedFavorites = localStorage.getItem(FAVORITES_STORAGE_KEY);
+                if (storedFavorites) {
+                    // Parse the JSON string back into a JavaScript array/object
+                    const trackArray = JSON.parse(storedFavorites);
+                    // Convert the array back into a Set for fast lookups
                     favoriteTrackNos = new Set(trackArray);
-                    console.log(`Loaded ${favoriteTrackNos.size} favorites.`);
+                    console.log(`Loaded ${favoriteTrackNos.size} favorites from localStorage.`);
                 } else {
-                    // Initialize as an empty set if the document doesn't exist yet
                     favoriteTrackNos = new Set();
-                    console.log("No favorites list found. Starting new set.");
+                    console.log("No favorites found in localStorage. Starting new set.");
                 }
-                
-                // CRITICAL SYNCHRONIZATION POINT: 
-                // Only render if the tracks (CSV data) are also fully loaded
-                if (isTracksLoaded) {
-                    const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
-                    renderTracks(tracksToRender);
-                    updateViewButtonText();
-                }
-
-            }, (error) => {
-                console.error("Error loading favorites:", error);
-            });
+            } catch (e) {
+                console.error("Error loading favorites from localStorage:", e);
+                favoriteTrackNos = new Set();
+            }
         }
 
-        // Saves the current set of favorites to Firestore
-        async function saveFavorites() {
-            if (!db || !userId) {
-                console.warn("Cannot save favorites: DB not ready or User ID missing.");
-                return;
-            }
+        // Saves the current set of favorites to localStorage
+        function saveFavorites() {
             try {
-                // Save the Set as an Array
-                await setDoc(getFavoritesDocRef(), { trackNos: Array.from(favoriteTrackNos) }, { merge: false });
-                console.log("Favorites saved successfully.");
-            } catch (error) {
-                console.error("Error saving favorites:", error);
+                // Convert the Set to an Array, and then to a JSON string for storage
+                const trackArray = Array.from(favoriteTrackNos);
+                localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(trackArray));
+                console.log("Favorites saved successfully to localStorage.");
+                
+                // Trigger re-render after saving
+                const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
+                renderTracks(tracksToRender);
+                updateViewButtonText();
+
+            } catch (e) {
+                console.error("Error saving favorites to localStorage:", e);
             }
         }
         
-        // Initializes Firebase and authenticates the user
-        async function initializeFirebase() {
-            if (!firebaseConfig) {
-                console.error("Firebase config not found. Favorites feature disabled.");
-                isAuthReady = true;
-                return;
-            }
-
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                // 1. Authenticate user using custom token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // 2. Set up Auth Listener
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        console.log("Firebase Auth Ready. User ID:", userId);
-                    } else {
-                        // Use a random ID if anonymous sign-in failed or no user found (shouldn't happen with anonymous sign-in)
-                        userId = crypto.randomUUID(); 
-                        console.log("Firebase Auth Ready. Using Anonymous/Fallback ID:", userId);
-                    }
-                    isAuthReady = true;
-                    // Start listening for data immediately after authentication is confirmed
-                    loadFavorites(); 
-                });
-
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                isAuthReady = true;
-            }
-        }
-
         // --- APP LOGIC ---
         
         // Toggles a track's favorite status and saves it
@@ -286,20 +224,14 @@
             // Prevent the parent row from expanding/collapsing when clicking the heart
             event.stopPropagation(); 
 
-            if (!isAuthReady) {
-                console.warn("Authentication not ready. Cannot toggle favorite.");
-                return;
-            }
-
             if (favoriteTrackNos.has(trackNo)) {
                 favoriteTrackNos.delete(trackNo);
             } else {
                 favoriteTrackNos.add(trackNo);
             }
             
-            // Save the updated list to Firestore
+            // Save the updated list to localStorage and trigger re-render
             saveFavorites();
-            // Note: The UI re-render is handled by the real-time 'onSnapshot' listener in loadFavorites.
         };
 
         // Toggles between viewing All Tracks and Favourites
@@ -320,8 +252,8 @@
             const statusSpan = document.getElementById('loading-text');
             const favCount = favoriteTrackNos.size;
             
-            // Update track count text (placed below button now)
-            statusSpan.textContent = `${allTracks.length} tracks loaded`;
+            // Update track count text
+            statusSpan.textContent = `${allTracks.length} tracks loaded (Local Only)`;
 
 
             if (currentView === 'all') {
@@ -376,18 +308,15 @@
             allTracks = data.filter(row => row['Track Name'] && row['Track Name'].trim() !== '');
             
             // Set the flag that CSV data is ready
-            isTracksLoaded = true; // NEW: Set flag to true
+            isTracksLoaded = true; // Tracks are ready
 
             // Update the UI with the total track count
             updateViewButtonText(); 
             
-            // RENDER LOGIC: Only trigger a render if the favorites list is already loaded (isAuthReady is true)
-            // If isAuthReady is false, the upcoming loadFavorites will trigger the render.
-            if (isAuthReady) {
-                const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
-                renderTracks(tracksToRender);
-                updateViewButtonText();
-            }
+            // Favorites are loaded instantly with loadFavorites(), so we can render now.
+            const tracksToRender = filterAndSearchTracks(searchInput.value, allTracks, currentView, favoriteTrackNos);
+            renderTracks(tracksToRender);
+            updateViewButtonText();
         }
 
         // --- RENDER TRACKS: THIS CREATES THE HTML FOR EACH SONG ---
@@ -526,8 +455,8 @@
 
         // START THE APP
         function init() {
-            // 1. Start Firebase initialization (async)
-            initializeFirebase();
+            // 1. Load favorites from localStorage instantly
+            loadFavorites();
             
             // 2. Load CSV data (async)
             try {
