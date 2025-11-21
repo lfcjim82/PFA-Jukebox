@@ -8,21 +8,66 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/r-2.2.9/datatables.min.css"/>
     
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px 0; }
-        .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+        body {
+            font-family: Arial, sans-serif;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Styles to Center the Search/Filter Box */
+        .dataTables_filter {
+            width: 100%;
+            text-align: center; 
+            margin-bottom: 15px; 
+        }
+        .dataTables_filter label {
+            width: 100%;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+        .dataTables_filter input {
+            margin-left: 5px;
+            max-width: 250px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+        }
         
-        /* Search Bar Styling */
-        .dataTables_filter { width: 100%; text-align: center; margin-bottom: 15px; }
-        .dataTables_filter label { width: 100%; display: flex; justify-content: center; align-items: center; }
-        .dataTables_filter input { margin-left: 5px; max-width: 250px; border-radius: 4px; border: 1px solid #ccc; padding: 6px 12px; }
-        
-        /* Title Styling */
-        h1.title { text-align: center; font-size: 1.8em; color: #333; margin-bottom: 20px; }
-        
-        /* Link Buttons */
-        .link-button { display: inline-block; padding: 4px 8px; margin: 2px 0; border-radius: 5px; text-decoration: none; font-size: 0.9em; text-align: center; white-space: nowrap; }
-        .spotify-link { background-color: #1DB954; color: white; border: 1px solid #1DB954; }
-        .youtube-link { background-color: #FF0000; color: white; border: 1px solid #FF0000; }
+        /* Custom style for Jukebox title */
+        h1.title {
+            text-align: center;
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Styling the Link Buttons */
+        .link-button {
+            display: inline-block;
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .spotify-link {
+            background-color: #1DB954; 
+            color: white;
+            border: 1px solid #1DB954;
+        }
+        .youtube-link {
+            background-color: #FF0000; 
+            color: white;
+            border: 1px solid #FF0000;
+        }
     </style>
 </head>
 <body>
@@ -54,77 +99,92 @@
 <script>
 $(document).ready(function() {
     
+    // 1. Use PapaParse to fetch and parse the CSV file
     Papa.parse('tracks.csv', {
         download: true,       
-        header: false, // Using column numbers to prevent errors
+        header: true,         
         skipEmptyLines: true, 
-        
         complete: function(results) {
-            // Remove the first row (headers)
-            var csvData = results.data.slice(1);
             
+            var csvData = results.data;
+            
+            // 2. Initialize DataTables with the processed data
             $('#tracksTable').DataTable({
                 data: csvData, 
                 
-                // Define the columns using NUMBERS (Index)
+                // Define the columns and data mapping
                 columns: [
-                    // ⬇️ UPDATED: Title changed to 'No.'
-                    { data: 0, title: 'No.', width: "70px" },
-                    { data: 1, title: 'Track Name', width: "55%" },
-                    { data: 2, title: 'Artist', width: "30%" },
+                    // 🛠️ FIX: Data uses 'Disc & Track', but title is 'No.'
+                    { data: 'Disc & Track', title: 'No.', width: "70px" },
+                    { data: 'Track Name', title: 'Track Name', width: "55%" },
+                    { data: 'Artist', title: 'Artist', width: "30%" },
                     
                     // Hidden data columns
-                    { data: 3, title: 'Year Released' },
-                    { data: 4, title: 'Album Name' },
+                    { data: 'Year Released', title: 'Year Released' },
+                    { data: 'Album Name', title: 'Album Name' },
                     
-                    // Column 5: Spotify Link
+                    // Render Spotify Link
                     { 
-                        data: 5, 
+                        data: 'Spotify Link', 
                         title: 'Spotify',
-                        render: function(data) {
-                            return data ? '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>' : '';
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<a href="' + data + '" target="_blank" class="link-button spotify-link">Spotify</a>';
+                            }
+                            return '';
                         }
                     },
                     
-                    // Column 6: Youtube Link
+                    // Render YouTube Link
                     { 
-                        data: 6, 
+                        data: 'Youtube Link', 
                         title: 'YouTube',
-                        render: function(data) {
-                            return data ? '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>' : '';
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<a href="' + data + '" target="_blank" class="link-button youtube-link">YouTube</a>';
+                            }
+                            return '';
                         }
                     }
                 ],
                 
+                // 3. Enable Responsive extension and restore the detail-on-page view
                 responsive: {
                     details: {
-                        display: $.fn.dataTable.Responsive.display.modal( {
-                            header: function ( row ) {
-                                var data = row.data();
-                                return 'Details for '+data[1]+' by '+data[2];
-                            }
-                        } ),
+                        // Use row display instead of modal display
+                        display: $.fn.dataTable.Responsive.display.childRowImmediate,
+                        // Use the default renderer to show all hidden columns
                         renderer: $.fn.dataTable.Responsive.renderer.tableAll({
-                            tableClass: 'table'
+                             tableClass: 'table table-compact'
                         })
                     }
                 },
-                
+
+                // 4. Define correct Mobile/Desktop Visibility Priority
                 columnDefs: [
-                    { responsivePriority: 1, targets: [1, 2] }, // Track Name & Artist
-                    { responsivePriority: 2, targets: 0 },      // No.
-                    { responsivePriority: 100, targets: [3, 4, 5, 6] }, 
+                    // 🏆 Highest Priority (Visible in Portrait): No. (0) & Track Name (1)
+                    { responsivePriority: 1, targets: [0, 1] }, 
+                    
+                    // 🥈 Second Priority (Visible in Landscape/Desktop): Artist (2)
+                    { responsivePriority: 2, targets: 2 }, 
+                    
+                    // 🥉 Lowest Priority: Push all other columns into the '+' button.
+                    { responsivePriority: 100, targets: [3, 4, 5, 6] },
+                    
+                    // Keep these columns explicitly hidden on the main table
                     { visible: false, targets: [3, 4, 5, 6] } 
                 ],
                 
+                // 5. General table appearance options
                 dom: 'lfrtip', 
-                paging: true, 
-                ordering: true, 
-                info: true, 
+                paging: true,
+                ordering: true,
+                info: true,
                 searching: true,
+                
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "Search for track or artist" 
+                    searchPlaceholder: "Search for Artist or Track Name" 
                 }
             });
         }
