@@ -113,6 +113,8 @@ $(document).ready(function() {
         download: true,       
         header: true,         
         skipEmptyLines: true, 
+        // 🛠️ FIX 1: Explicitly set encoding to UTF-8 to strip the BOM from the header key
+        encoding: 'utf-8', 
         complete: function(results) {
             
             var csvData = results.data;
@@ -123,19 +125,18 @@ $(document).ready(function() {
                 
                 // Define the columns and data mapping
                 columns: [
-                    // ⚠️ CRITICAL: Data keys must exactly match your new CSV headers,
-                    // including the hidden BOM character (﻿) and the colons (:).
-                    { data: '﻿No.', title: 'No.', width: "70px" },
+                    // 🛠️ FIX 2: Using the clean key 'No.' without the BOM character
+                    { data: 'No.', title: 'No.', width: "70px" },
                     { data: 'Track Name', title: 'Track Name', width: "55%" },
                     { data: 'Artist', title: 'Artist', width: "30%" },
                     
-                    // Year Released remains unchanged
+                    // Year Released
                     { data: 'Year Released', title: 'Year Released' },
                     
-                    // Album has a colon now
+                    // Album (with colon in key)
                     { data: 'Album:', title: 'Album' },
                     
-                    // Render Spotify Link (with colon)
+                    // Render Spotify Link (with colon in key)
                     { 
                         data: 'Spotify Link:', 
                         title: 'Spotify',
@@ -147,7 +148,7 @@ $(document).ready(function() {
                         }
                     },
                     
-                    // Render YouTube Link (with colon)
+                    // Render YouTube Link (with colon in key)
                     { 
                         data: 'Youtube Link:', 
                         title: 'YouTube',
@@ -166,7 +167,6 @@ $(document).ready(function() {
                         display: $.fn.dataTable.Responsive.display.modal( {
                             header: function ( row ) {
                                 var data = row.data();
-                                // Note: Using the clean titles for the modal header
                                 return 'Details for '+data['Track Name']+' by '+data['Artist'];
                             }
                         } ),
@@ -198,10 +198,10 @@ $(document).ready(function() {
                 info: true,
                 searching: true,
                 
-                // Restore Search Placeholder
+                // 🛠️ FIX 3: Updated Search Placeholder text
                 language: {
                     search: "Search:", 
-                    searchPlaceholder: "Search for Artist or Track Name"
+                    searchPlaceholder: "search for track or artist"
                 }
             });
         }
